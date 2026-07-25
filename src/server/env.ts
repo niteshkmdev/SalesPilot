@@ -13,6 +13,7 @@ export const env = createEnv({
     SMTP_PORT: z.coerce.number().optional(),
     SMTP_USER: z.string().optional(),
     SMTP_PASSWORD: z.string().optional(),
+    EMAIL_FROM: z.string().optional(),
 
     TURNSTILE_SECRET_KEY: z.string().optional(),
 
@@ -40,6 +41,7 @@ export const env = createEnv({
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+    EMAIL_FROM: process.env.EMAIL_FROM,
 
     TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
 
