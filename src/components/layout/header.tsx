@@ -1,9 +1,7 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
-import Link from "next/link";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NotificationBell } from "@/modules/notifications/components/notification-bell";
 import { MobileNav } from "./mobile-nav";
 
 interface HeaderProps {
@@ -15,6 +13,7 @@ interface HeaderProps {
   };
   organization: {
     name: string;
+    logo?: string | null;
   };
 }
 
@@ -38,6 +37,9 @@ export function Header({ role, user, organization }: HeaderProps) {
 
         <div className="flex min-w-0 items-center gap-3">
           <Avatar className="size-9">
+            {organization.logo ? (
+              <AvatarImage src={organization.logo} alt={organization.name} />
+            ) : null}
             <AvatarFallback>{orgInitials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 hidden sm:block">
@@ -49,12 +51,7 @@ export function Header({ role, user, organization }: HeaderProps) {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <Button asChild className="hidden sm:inline-flex">
-            <Link href="/leads/new">
-              <PlusIcon data-icon="inline-start" />
-              New Lead
-            </Link>
-          </Button>
+          <NotificationBell />
         </div>
       </div>
     </header>

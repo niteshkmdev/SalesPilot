@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { PageHeader } from "@/components/layout/page-header";
 import { listActiveCustomFieldsForLeads } from "@/modules/custom-fields";
 import {
   getLead,
@@ -9,7 +10,6 @@ import {
   listMemberAssigneeOptions,
 } from "@/modules/leads";
 import { LeadForm } from "@/modules/leads/components/lead-form";
-import { LeadPageHeader } from "@/modules/leads/components/lead-page-header";
 import { ApiErrorCode, AppError } from "@/shared/api/errors";
 
 async function loadLead(leadId: string) {
@@ -54,7 +54,7 @@ export default async function EditLeadPage({
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <LeadPageHeader
+      <PageHeader
         backHref={`/leads/${lead.id}`}
         backLabel="Back to lead"
         title={`${lead.firstName} ${lead.lastName}`}

@@ -15,6 +15,8 @@ import {
 } from "@/modules/custom-fields/dto/custom-field.mapper";
 import {
   createCustomField as createCustomFieldRecord,
+  deleteCustomFieldRecord,
+  deleteCustomFieldValues,
   findCustomFieldById,
   findCustomValuesForLead,
   getNextDisplayOrder,
@@ -27,6 +29,7 @@ import {
   isEmptyCustomValue,
   validateCustomFieldValue,
 } from "@/modules/custom-fields/services/custom-field-value";
+import { FormFieldsConfigSchema } from "@/modules/lead-forms/dto/lead-form.dto";
 import { Permissions } from "@/modules/permissions/constants/permissions";
 import { createAuthorizationService } from "@/modules/permissions/services/authorization.service";
 import { prisma } from "@/server/db/prisma";
@@ -139,6 +142,51 @@ export async function deactivateCustomField(
   fieldId: string,
 ): Promise<CustomFieldDto> {
   return updateCustomField(fieldId, { active: false });
+}
+
+export async function deleteCustomField(fieldId: string): Promise<void> {
+  const ctx = await requireAppContext();
+  await createAuthorizationService(ctx.permissions).require(
+    Permissions.CUSTOM_FIELD_MANAGE,
+  );
+
+  const existing = await findCustomFieldById(
+    prisma,
+    ctx.organization.id,
+    fieldId,
+  );
+  if (!existing) throw notFound("Custom field not found.");
+  if (existing.active) {
+    throw validationFailed("Deactivate the field before deleting it.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await deleteCustomFieldValues(tx, fieldId);
+
+    const forms = await tx.leadForm.findMany({
+      where: {
+        organizationId: ctx.organization.id,
+        OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+      },
+      select: { id: true, fields: true },
+    });
+    for (const form of forms) {
+      const parsed = FormFieldsConfigSchema.safeParse(form.fields);
+      if (!parsed.success) continue;
+      const next = parsed.data.filter(
+        (entry) =>
+          !(entry.kind === "custom" && entry.customFieldId === fieldId),
+      );
+      if (next.length !== parsed.data.length) {
+        await tx.leadForm.update({
+          where: { id: form.id },
+          data: { fields: next as unknown as Prisma.InputJsonValue },
+        });
+      }
+    }
+
+    await deleteCustomFieldRecord(tx, fieldId);
+  });
 }
 
 export async function reorderCustomFields(

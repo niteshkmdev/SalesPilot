@@ -20,12 +20,13 @@ export const env = createEnv({
 
     TURNSTILE_SECRET_KEY: z.string().optional(),
 
-    STORAGE_PROVIDER: z.enum(["s3"]),
+    STORAGE_PROVIDER: z.enum(["s3"]).default("s3"),
     S3_BUCKET: z.string().optional(),
     S3_REGION: z.string().optional(),
     S3_ENDPOINT: z.string().optional(),
     S3_ACCESS_KEY_ID: z.string().optional(),
     S3_SECRET_ACCESS_KEY: z.string().optional(),
+    CLOUDFRONT_CDN_MEDIA_URL: z.string().url().optional(),
   },
 
   client: {
@@ -55,6 +56,7 @@ export const env = createEnv({
     S3_ENDPOINT: process.env.S3_ENDPOINT,
     S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
     S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
+    CLOUDFRONT_CDN_MEDIA_URL: process.env.CLOUDFRONT_CDN_MEDIA_URL,
 
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,

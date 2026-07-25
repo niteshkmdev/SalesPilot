@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LeadActivityTimeline, listLeadTimeline } from "@/modules/activity";
 import { requireAppContext } from "@/modules/auth/services/app-context.service";
 import {
   getLead,
@@ -21,7 +23,6 @@ import {
 } from "@/modules/leads";
 import { AssignLeadDialog } from "@/modules/leads/components/assign-lead-dialog";
 import { DeleteLeadButton } from "@/modules/leads/components/delete-lead-button";
-import { LeadPageHeader } from "@/modules/leads/components/lead-page-header";
 import { UpdateLeadNotesDialog } from "@/modules/leads/components/update-lead-notes-dialog";
 import { UpdateLeadStatusDialog } from "@/modules/leads/components/update-lead-status-dialog";
 import { ApiErrorCode, AppError } from "@/shared/api/errors";
@@ -34,6 +35,24 @@ async function loadLead(leadId: string) {
       notFound();
     }
     throw error;
+  }
+}
+
+async function loadTimeline(leadId: string) {
+  try {
+    return {
+      activities: await listLeadTimeline(leadId),
+      error: null as string | null,
+    };
+  } catch (error) {
+    if (error instanceof AppError && error.code === ApiErrorCode.NOT_FOUND) {
+      notFound();
+    }
+    return {
+      activities: [],
+      error:
+        error instanceof AppError ? error.message : "Unable to load activity.",
+    };
   }
 }
 
@@ -71,14 +90,21 @@ export default async function LeadDetailPage({
   const { id: leadId } = await params;
   const ctx = await requireAppContext();
 
-  const [lead, statuses, memberOptions, managerOptions, capabilities] =
-    await Promise.all([
-      loadLead(leadId),
-      listLeadStatuses(),
-      listMemberAssigneeOptions(),
-      listManagerAssigneeOptions(),
-      getLeadCapabilities(),
-    ]);
+  const [
+    lead,
+    statuses,
+    memberOptions,
+    managerOptions,
+    capabilities,
+    timeline,
+  ] = await Promise.all([
+    loadLead(leadId),
+    listLeadStatuses(),
+    listMemberAssigneeOptions(),
+    listManagerAssigneeOptions(),
+    getLeadCapabilities(),
+    loadTimeline(leadId),
+  ]);
 
   const canUpdateThisLead = canUpdateOwnedLead(
     capabilities.canUpdate,
@@ -110,7 +136,7 @@ export default async function LeadDetailPage({
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <LeadPageHeader
+      <PageHeader
         backHref="/leads"
         title={`${lead.firstName} ${lead.lastName}`}
         subtitle={
@@ -283,6 +309,11 @@ export default async function LeadDetailPage({
           </CardContent>
         </Card>
       ) : null}
+
+      <LeadActivityTimeline
+        activities={timeline.activities}
+        error={timeline.error}
+      />
     </div>
   );
 }

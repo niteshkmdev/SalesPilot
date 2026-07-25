@@ -1,5 +1,6 @@
 import type { CustomFieldType } from "@prisma/client";
 import { validationFailed } from "@/shared/api/errors";
+import { validateOptionalPhoneValue } from "@/shared/phone";
 
 function asTrimmedString(value: unknown): string | null {
   if (value === undefined || value === null) return null;
@@ -41,8 +42,12 @@ export function validateCustomFieldValue(
         throw validationFailed(`${label} must be a valid email.`);
       }
     }
-    if (type === "PHONE" && text.length > 40) {
-      throw validationFailed(`${label} is too long.`);
+    if (type === "PHONE") {
+      const phone = validateOptionalPhoneValue(text);
+      if (!phone.ok) {
+        throw validationFailed(`${label}: ${phone.message}`);
+      }
+      return phone.e164;
     }
     if (text.length > 2000) {
       throw validationFailed(`${label} is too long.`);

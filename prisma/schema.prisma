@@ -21,6 +21,8 @@ model User {
   email         String    @unique
   emailVerified Boolean   @default(false)
   image         String?
+  phone         String?
+  gender        String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -321,20 +323,22 @@ model LeadNote {
 }
 
 model LeadForm {
-  id                       String         @id @default(cuid(2)) @map("_id")
+  id                       String               @id @default(cuid(2)) @map("_id")
   organizationId           String
   name                     String
   slug                     String
   description              String?
-  status                   LeadFormStatus @default(DRAFT)
+  status                   LeadFormStatus       @default(DRAFT)
+  brandingDisplay          FormBrandingDisplay  @default(BOTH)
   fields                   Json
   defaultAssignedManagerId String?
   successMessage           String?
-  allowIndexing            Boolean        @default(false)
+  allowIndexing            Boolean              @default(false)
   createdBy                String
   updatedBy                String?
-  createdAt                DateTime       @default(now())
-  updatedAt                DateTime       @updatedAt
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  deletedAt                DateTime?
 
   organization           Organization        @relation(fields: [organizationId], references: [id])
   creator                OrganizationMember  @relation("LeadFormCreatedBy", fields: [createdBy], references: [id])
@@ -346,6 +350,7 @@ model LeadForm {
   @@index([organizationId])
   @@index([createdBy])
   @@index([defaultAssignedManagerId])
+  @@index([deletedAt])
   @@map("lead_form")
 }
 
@@ -464,6 +469,12 @@ enum LeadFormStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+enum FormBrandingDisplay {
+  LOGO
+  NAME
+  BOTH
 }
 
 enum CustomFieldType {

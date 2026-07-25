@@ -22,6 +22,7 @@ export const Permissions = {
   FORM_UPDATE: "form.update",
   FORM_PUBLISH: "form.publish",
   FORM_ARCHIVE: "form.archive",
+  FORM_DELETE: "form.delete",
   ACTIVITY_READ: "activity.read",
   NOTIFICATION_READ: "notification.read",
   NOTIFICATION_UPDATE: "notification.update",
@@ -150,7 +151,12 @@ export const permissionDefinitions: PermissionDefinition[] = [
   },
   {
     name: Permissions.FORM_ARCHIVE,
-    description: "Archive lead forms.",
+    description: "Archive and unarchive lead forms.",
+    group: "Forms",
+  },
+  {
+    name: Permissions.FORM_DELETE,
+    description: "Soft-delete lead forms (hide from admin UI).",
     group: "Forms",
   },
   {

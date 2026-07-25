@@ -129,6 +129,16 @@ Use existing UI components whenever possible.
 
 Accessibility is required.
 
+## Dashboard page layout (Leads pattern)
+
+New and updated dashboard modules must follow the **Leads** layout as the canonical pattern.
+
+- Full-width list pages (no narrow `max-w-*` shells on tables). Use `max-w-4xl` only for focused create/edit forms, like lead new/edit.
+- Shared [`PageHeader`](src/components/layout/page-header.tsx): ghost back link + title/subtitle + action cluster (detail/edit). List pages usually omit the back link.
+- List pages: title row + search toggle + filters + primary CTA + bordered table (+ pagination when needed). Reference `/leads`.
+- Hierarchy: list → detail → edit, with back labels such as “Back to forms” / “Back to form”.
+- Prefer extending leads UI primitives (search toggle, filters sheet, table chrome) over inventing new shells.
+
 ---
 
 # API Rules
@@ -226,7 +236,7 @@ For every feature, follow this sequence:
 
 Canonical live status lives in `PROJECT_TRACKER.md`. Update that file after meaningful work.
 
-This section records which Plan Index items have been **re-checked** against their prompts/docs (not only marked done at first handoff). Last re-check sweep: **2026-07-25**.
+This section records which Plan Index items have been **re-checked** against their prompts/docs (not only marked done at first handoff). Last re-check sweep: **2026-07-26**.
 
 | # | Plan | Tracker | Re-checked? | Outcome / remaining points |
 |---|---|---|---|---|
@@ -237,9 +247,14 @@ This section records which Plan Index items have been **re-checked** against the
 | 05 | Members, Roles & Settings | `[x]` | Yes | Invite/resend/revoke + `/invite/[token]` accept; default Admin/Manager/Member roles; role change/remove guards; org name update; Members in account-foot popper (not top-level nav). |
 | 06 | Leads Management | `[x]` | Yes | Domain in `src/modules/leads/`; `Permissions.LEAD_*` + role-scoped visibility (Member/Manager/Owner-Admin); assign pools; status/notes allowlist for Members; filters/pagination/soft-delete/duplicates. Deferred: activity/notes/attachments/merge/Atlas/bulk/REST. |
 | 07 | Dashboard v1 | `[~]` | Yes (deferred) | Intentionally deferred until Activity/Notifications; `/dashboard` remains sample data. |
-| 08 | Custom Fields | `[x]` | Yes | Org definitions (`customfield.*`), settings UI, lead create/edit/detail values; MVP types TEXT–NUMBER. |
-| 09 | Lead Forms & Public Submissions | `[x]` | Yes | Admin forms + publish; public `/forms/[orgSlug]/[formSlug]`; atomic lead+submission+custom values+activity; Turnstile when configured. |
-| 10–16, 99 | Later MVP / roadmap | `[ ]` | No | Not started; next is Search (10). |
+| 08 | Custom Fields | `[x]` | Yes | Org definitions (`customfield.*`), settings UI, lead create/edit/detail values; MVP types TEXT–NUMBER. Sidebar nav before Forms; full-width list layout. |
+| 09 | Lead Forms & Public Submissions | `[x]` | Yes | Admin forms + publish; public `/forms/[orgSlug]/[formSlug]`; atomic lead+submission+custom values+activity; Turnstile when configured. UX: list filters, `/forms/view/[id]`, draft/publish actions, email required core. |
+| 10 | Search | `[~]` | Yes (skipped) | Intentionally skipped: no global/header search in MVP; list filters cover leads/forms. Revisit later if Atlas/global search is needed. |
+| 11 | Activity Timeline | `[x]` | Yes | Lead-only append-only timeline on `/leads/[id]`; side-effects after create/update/assign/delete; form submit keeps atomic `lead.created_from_form`. |
+| 12 | Notifications | `[x]` | Yes | In-app assign + status notifications; header bell with polling badge → `/notifications` center; no sockets/email. |
+| 13 | Storage & Attachments | `[~]` | Yes (deferred) | Full lead attachments skipped; minimal S3/CloudFront presign slice lives under Plan 14 for org logos + user avatars only. Revisit for multipart/lead files. |
+| 14 | Branding & Organization Settings | `[x]` | Yes | Org logo settings/header/public forms; per-form `brandingDisplay`; user profile avatar/phone/gender/password/Google link-unlink; no color picker UI. |
+| 15–16, 99 | Later MVP / roadmap | `[ ]` | No | Not started; next is Testing & Quality Hardening (15). |
 
 ## Agent rules for this table
 

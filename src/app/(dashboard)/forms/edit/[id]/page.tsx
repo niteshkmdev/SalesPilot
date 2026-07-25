@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { PageHeader } from "@/components/layout/page-header";
 import { listActiveCustomFieldsForLeads } from "@/modules/custom-fields";
 import { getFormCapabilities, getLeadForm } from "@/modules/lead-forms";
 import { LeadFormEditor } from "@/modules/lead-forms/components/lead-form-editor";
@@ -33,12 +34,18 @@ export default async function EditFormPage({
     redirect("/dashboard");
   }
 
+  if (form.status === "ARCHIVED") {
+    redirect(`/forms/view/${form.id}`);
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{form.name}</h1>
-        <p className="text-muted-foreground">Edit form configuration.</p>
-      </div>
+      <PageHeader
+        backHref={`/forms/view/${form.id}`}
+        backLabel="Back to form"
+        title={form.name}
+        subtitle="Edit form configuration."
+      />
       <LeadFormEditor
         initialData={form}
         customFields={customFields}
@@ -46,6 +53,7 @@ export default async function EditFormPage({
         canUpdate={capabilities.canUpdate}
         canPublish={capabilities.canPublish}
         canArchive={capabilities.canArchive}
+        organizationLogo={form.organizationLogo}
       />
     </div>
   );

@@ -105,6 +105,20 @@ export async function updateCustomField(
   });
 }
 
+export async function deleteCustomFieldValues(
+  db: DatabaseClient,
+  fieldId: string,
+) {
+  return db.leadCustomFieldValue.deleteMany({ where: { fieldId } });
+}
+
+export async function deleteCustomFieldRecord(
+  db: DatabaseClient,
+  fieldId: string,
+) {
+  return db.customField.delete({ where: { id: fieldId } });
+}
+
 export async function reorderCustomFields(
   db: DatabaseClient,
   organizationId: string,

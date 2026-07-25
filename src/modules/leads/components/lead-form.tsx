@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ZodError } from "zod";
 import {
   createLeadAction,
   updateLeadAction,
 } from "@/app/(dashboard)/leads/actions";
+import { PhoneInput } from "@/components/phone-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,16 +23,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { CustomFieldDto } from "@/modules/custom-fields/dto/custom-field.dto";
 import {
   CustomFieldsFormSection,
   collectCustomValuesFromFormData,
 } from "@/modules/custom-fields/components/custom-fields-form-section";
-import type {
-  LeadAssigneeOptionDto,
-  LeadDetailDto,
-  LeadSourceDto,
-  LeadStatusDto,
+import type { CustomFieldDto } from "@/modules/custom-fields/dto/custom-field.dto";
+import {
+  CreateLeadSchema,
+  type LeadAssigneeOptionDto,
+  type LeadDetailDto,
+  type LeadSourceDto,
+  type LeadStatusDto,
 } from "@/modules/leads/dto/lead.dto";
 
 interface LeadFormProps {
@@ -54,6 +57,7 @@ export function LeadForm({
 }: LeadFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const isEdit = Boolean(initialData?.id);
 
   const defaultStatusId =
@@ -82,6 +86,7 @@ export function LeadForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setPhoneError(null);
 
     const formData = new FormData(e.currentTarget);
     const customValues = collectCustomValuesFromFormData(formData);
@@ -108,10 +113,29 @@ export function LeadForm({
     };
 
     try {
+      CreateLeadSchema.parse(data);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const phoneIssue = error.issues.find(
+          (issue) => issue.path[0] === "phone",
+        )?.message;
+        if (phoneIssue) {
+          setPhoneError(phoneIssue);
+          setIsLoading(false);
+          return;
+        }
+      }
+    }
+
+    try {
       if (initialData?.id) {
         const result = await updateLeadAction(initialData.id, data);
         if ("error" in result) {
-          toast.error(result.error);
+          if (/phone/i.test(result.error)) {
+            setPhoneError(result.error);
+          } else {
+            toast.error(result.error);
+          }
           return;
         }
         toast.success("Lead updated successfully");
@@ -120,7 +144,11 @@ export function LeadForm({
       } else {
         const result = await createLeadAction(data);
         if ("error" in result) {
-          toast.error(result.error);
+          if (/phone/i.test(result.error)) {
+            setPhoneError(result.error);
+          } else {
+            toast.error(result.error);
+          }
           return;
         }
         toast.success("Lead created successfully");
@@ -179,13 +207,13 @@ export function LeadForm({
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="phone">Phone</Label>
-              <Input
+              <PhoneInput
                 id="phone"
                 name="phone"
-                type="tel"
-                placeholder="+1 555 0100"
-                defaultValue={initialData?.phone ?? ""}
+                defaultValue={initialData?.phone}
                 disabled={isLoading}
+                error={phoneError}
+                onErrorChange={setPhoneError}
               />
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalPhoneSchema } from "@/shared/phone";
 
 const optionalString = z.string().optional().or(z.literal(""));
 
@@ -6,7 +7,7 @@ export const CreateLeadSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  phone: optionalString,
+  phone: optionalPhoneSchema,
   company: optionalString,
   jobTitle: optionalString,
   website: z.string().url("Invalid URL").optional().or(z.literal("")),

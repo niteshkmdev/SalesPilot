@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { PhoneInput } from "@/components/phone-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -71,14 +72,36 @@ export function CustomFieldsFormSection({
             );
           }
 
+          if (field.type === "PHONE") {
+            return (
+              <div key={field.id} className="flex flex-col gap-2">
+                <Label htmlFor={id}>
+                  {field.name}
+                  {field.required ? " *" : ""}
+                </Label>
+                <PhoneInput
+                  id={id}
+                  name={inputName}
+                  defaultValue={defaultValue}
+                  required={field.required}
+                  disabled={disabled}
+                  placeholder={field.placeholder ?? undefined}
+                />
+                {field.helpText ? (
+                  <p className="text-xs text-muted-foreground">
+                    {field.helpText}
+                  </p>
+                ) : null}
+              </div>
+            );
+          }
+
           const inputType =
             field.type === "EMAIL"
               ? "email"
-              : field.type === "PHONE"
-                ? "tel"
-                : field.type === "NUMBER"
-                  ? "number"
-                  : "text";
+              : field.type === "NUMBER"
+                ? "number"
+                : "text";
 
           return (
             <div key={field.id} className="flex flex-col gap-2">

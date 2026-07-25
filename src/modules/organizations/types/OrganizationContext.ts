@@ -12,6 +12,7 @@ export interface AppOrganization {
   id: string;
   name: string;
   slug: string;
+  logo: string | null;
 }
 
 export interface AppMember {

@@ -134,6 +134,7 @@ describe("provisionOrganizationForUser", () => {
       id: "org_1",
       name: "Ada Lovelace's Organization",
       slug: "ada-lovelace",
+      logo: null,
     });
   });
 

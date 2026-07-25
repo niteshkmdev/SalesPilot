@@ -8,6 +8,14 @@ import {
 } from "@/modules/lead-forms/dto/lead-form.dto";
 import type { DatabaseClient } from "@/server/db/types";
 
+/**
+ * MongoDB: `deletedAt: null` alone excludes forms that never had the field written.
+ * Match both explicit null and unset.
+ */
+const notDeleted: Prisma.LeadFormWhereInput = {
+  OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+};
+
 export function parseFormFields(value: Prisma.JsonValue): FormFieldConfig[] {
   const parsed = FormFieldsConfigSchema.safeParse(value);
   return parsed.success ? parsed.data : [];
@@ -30,6 +38,7 @@ export function toLeadFormListItemDto(
 export function toLeadFormDetailDto(
   form: LeadForm,
   organizationSlug: string,
+  organizationLogo: string | null = null,
 ): LeadFormDetailDto {
   return {
     id: form.id,
@@ -39,6 +48,7 @@ export function toLeadFormDetailDto(
     slug: form.slug,
     description: form.description,
     status: form.status,
+    brandingDisplay: form.brandingDisplay,
     fields: parseFormFields(form.fields),
     defaultAssignedManagerId: form.defaultAssignedManagerId,
     successMessage: form.successMessage,
@@ -46,6 +56,7 @@ export function toLeadFormDetailDto(
     createdAt: form.createdAt.toISOString(),
     updatedAt: form.updatedAt.toISOString(),
     publicPath: publicFormPath(organizationSlug, form.slug),
+    organizationLogo,
   };
 }
 
@@ -54,7 +65,7 @@ export async function listLeadForms(
   organizationId: string,
 ) {
   return db.leadForm.findMany({
-    where: { organizationId },
+    where: { organizationId, ...notDeleted },
     orderBy: { updatedAt: "desc" },
   });
 }
@@ -65,7 +76,7 @@ export async function findLeadFormById(
   formId: string,
 ) {
   return db.leadForm.findFirst({
-    where: { id: formId, organizationId },
+    where: { id: formId, organizationId, ...notDeleted },
   });
 }
 
@@ -75,7 +86,7 @@ export async function findLeadFormBySlug(
   slug: string,
 ) {
   return db.leadForm.findFirst({
-    where: { organizationId, slug },
+    where: { organizationId, slug, ...notDeleted },
   });
 }
 
@@ -88,6 +99,7 @@ export async function findPublishedFormByOrgAndSlug(
     where: {
       slug: formSlug,
       status: "PUBLISHED" satisfies LeadFormStatus,
+      ...notDeleted,
       organization: { slug: orgSlug },
     },
     include: {
@@ -108,6 +120,7 @@ export async function formSlugExists(
     where: {
       organizationId,
       slug,
+      ...notDeleted,
       ...(excludeId ? { id: { not: excludeId } } : {}),
     },
     select: { id: true },
@@ -126,6 +139,7 @@ export async function createLeadFormRecord(
     defaultAssignedManagerId: string | null;
     successMessage: string | null;
     allowIndexing: boolean;
+    brandingDisplay?: import("@prisma/client").FormBrandingDisplay;
     createdBy: string;
   },
 ) {
@@ -139,7 +153,9 @@ export async function createLeadFormRecord(
       defaultAssignedManagerId: data.defaultAssignedManagerId,
       successMessage: data.successMessage,
       allowIndexing: data.allowIndexing,
+      brandingDisplay: data.brandingDisplay ?? "BOTH",
       status: "DRAFT",
+      deletedAt: null,
       createdBy: data.createdBy,
     },
   });
@@ -157,7 +173,9 @@ export async function updateLeadFormRecord(
     defaultAssignedManagerId?: string | null;
     successMessage?: string | null;
     allowIndexing?: boolean;
+    brandingDisplay?: import("@prisma/client").FormBrandingDisplay;
     status?: LeadFormStatus;
+    deletedAt?: Date | null;
   },
 ) {
   const patch: Prisma.LeadFormUpdateInput = {
@@ -180,7 +198,11 @@ export async function updateLeadFormRecord(
   if (data.allowIndexing !== undefined) {
     patch.allowIndexing = data.allowIndexing;
   }
+  if (data.brandingDisplay !== undefined) {
+    patch.brandingDisplay = data.brandingDisplay;
+  }
   if (data.status !== undefined) patch.status = data.status;
+  if (data.deletedAt !== undefined) patch.deletedAt = data.deletedAt;
 
   return db.leadForm.update({
     where: { id: formId },
@@ -207,29 +229,6 @@ export async function createFormSubmissionRecord(
       payload: data.payload,
       ipAddress: data.ipAddress,
       userAgent: data.userAgent,
-    },
-  });
-}
-
-export async function createActivityRecord(
-  db: DatabaseClient,
-  data: {
-    organizationId: string;
-    actorId: string | null;
-    entityType: string;
-    entityId: string;
-    action: string;
-    metadata?: Prisma.InputJsonValue;
-  },
-) {
-  return db.activity.create({
-    data: {
-      organizationId: data.organizationId,
-      actorId: data.actorId,
-      entityType: data.entityType,
-      entityId: data.entityId,
-      action: data.action,
-      metadata: data.metadata,
     },
   });
 }

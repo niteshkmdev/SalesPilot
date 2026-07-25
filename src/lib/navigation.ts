@@ -19,8 +19,9 @@ export interface NavItem {
 
 /**
  * Live navigation only includes routes that exist today.
- * Branding and Notifications remain deferred until their plans ship.
- * Profile, Organization, Members, and Custom Fields open from the account foot.
+ * Branding remains deferred until Plan 14. Notifications live in the header
+ * bell → `/notifications` (not a sidebar item).
+ * Profile, Organization, and Members open from the account foot popper.
  */
 export const navigationItems: NavItem[] = [
   {
@@ -36,10 +37,16 @@ export const navigationItems: NavItem[] = [
     roles: ["Owner", "Admin", "Manager", "Member"],
   },
   {
+    title: "Custom Fields",
+    href: "/settings/custom-fields",
+    icon: FormInput,
+    roles: ["Owner", "Admin"],
+  },
+  {
     title: "Forms",
     href: "/forms",
     icon: FormInput,
-    roles: ["Owner", "Admin", "Manager"],
+    roles: ["Owner", "Admin", "Manager", "Member"],
   },
 ];
 
@@ -61,12 +68,6 @@ export const settingsNavItems: NavItem[] = [
     title: "Members",
     href: "/settings/members",
     icon: UsersRound,
-    roles: ["Owner", "Admin"],
-  },
-  {
-    title: "Custom Fields",
-    href: "/settings/custom-fields",
-    icon: FormInput,
     roles: ["Owner", "Admin"],
   },
 ];

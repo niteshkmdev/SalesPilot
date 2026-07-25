@@ -24,6 +24,9 @@ describe("default roles", () => {
   });
 
   it("keeps Manager and Member narrower than Admin", () => {
+    const admin = defaultNonOwnerRoles.find(
+      (role) => role.name === systemRoleNames.admin,
+    );
     const manager = defaultNonOwnerRoles.find(
       (role) => role.name === systemRoleNames.manager,
     );
@@ -41,5 +44,18 @@ describe("default roles", () => {
     expect(member?.permissions).toContain("customfield.read");
     expect(member?.permissions).not.toContain("customfield.manage");
     expect(manager?.permissions).not.toContain("customfield.manage");
+
+    expect(member?.permissions).toContain("form.read");
+    expect(member?.permissions).not.toContain("form.update");
+    expect(member?.permissions).not.toContain("form.delete");
+
+    expect(manager?.permissions).toContain("form.read");
+    expect(manager?.permissions).toContain("form.create");
+    expect(manager?.permissions).toContain("form.update");
+    expect(manager?.permissions).toContain("form.publish");
+    expect(manager?.permissions).toContain("form.archive");
+    expect(manager?.permissions).not.toContain("form.delete");
+
+    expect(admin?.permissions).toContain("form.delete");
   });
 });

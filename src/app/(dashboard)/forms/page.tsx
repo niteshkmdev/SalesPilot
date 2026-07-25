@@ -1,87 +1,74 @@
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   getFormCapabilities,
   listOrganizationLeadForms,
 } from "@/modules/lead-forms";
+import { FormFilters } from "@/modules/lead-forms/components/form-filters";
+import { FormSearchToggle } from "@/modules/lead-forms/components/form-search-toggle";
+import { FormsTable } from "@/modules/lead-forms/components/forms-table";
 
-export default async function FormsListPage() {
+const statusValues = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
+
+export default async function FormsListPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const capabilities = await getFormCapabilities();
   if (!capabilities.canRead) {
     redirect("/dashboard");
   }
 
-  const forms = await listOrganizationLeadForms();
+  const raw = await searchParams;
+  const pick = (key: string) => {
+    const value = raw[key];
+    return typeof value === "string" ? value : undefined;
+  };
+
+  const q = pick("q") || undefined;
+  const statusRaw = pick("status");
+  const status = statusValues.includes(
+    statusRaw as (typeof statusValues)[number],
+  )
+    ? (statusRaw as (typeof statusValues)[number])
+    : undefined;
+
+  const forms = await listOrganizationLeadForms({ q, status });
+  const emptyVariant = q || status ? "filtered" : "none";
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Forms</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Forms</h1>
           <p className="text-muted-foreground">
-            Create public forms that capture leads into your pipeline.
+            Public forms that capture leads into your pipeline. {forms.length}{" "}
+            form{forms.length === 1 ? "" : "s"}.
           </p>
         </div>
-        {capabilities.canCreate ? (
-          <Button asChild>
-            <Link href="/forms/new">New form</Link>
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <FormSearchToggle initialQuery={q ?? ""} />
+          <FormFilters q={q} status={status} />
+          {capabilities.canCreate ? (
+            <Button asChild>
+              <Link href="/forms/new">
+                <Plus data-icon="inline-start" />
+                New form
+              </Link>
+            </Button>
+          ) : null}
+        </div>
       </div>
 
-      {forms.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
-          No forms yet.
-          {capabilities.canCreate
-            ? " Create one to start collecting leads."
-            : ""}
-        </p>
-      ) : (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Updated</TableHead>
-                <TableHead className="text-right">Open</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {forms.map((form) => (
-                <TableRow key={form.id}>
-                  <TableCell className="font-medium">{form.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {form.slug}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{form.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(form.updatedAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/forms/edit/${form.id}`}>Edit</Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <FormsTable
+        forms={forms}
+        emptyVariant={emptyVariant}
+        canUpdate={capabilities.canUpdate}
+        canDelete={capabilities.canDelete}
+      />
     </div>
   );
 }

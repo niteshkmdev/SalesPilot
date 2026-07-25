@@ -26,6 +26,7 @@ export {
   assertCanManageCustomFields,
   createCustomField,
   deactivateCustomField,
+  deleteCustomField,
   getLeadCustomValues,
   listActiveCustomFieldsForLeads,
   listCustomFields,

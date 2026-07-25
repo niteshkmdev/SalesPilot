@@ -1,10 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { updateOrganizationLogo } from "@/modules/branding";
 import {
   CreateCustomFieldSchema,
   createCustomField,
   deactivateCustomField,
+  deleteCustomField,
   UpdateCustomFieldSchema,
   updateCustomField,
 } from "@/modules/custom-fields";
@@ -19,6 +22,7 @@ import {
   removeMember,
 } from "@/modules/organizations/services/member.service";
 import { updateCurrentOrganization } from "@/modules/organizations/services/organization.service";
+import { auth } from "@/server/auth/auth";
 import { AppError } from "@/shared/api/errors";
 
 function actionError(error: unknown): { error: string } {
@@ -113,6 +117,39 @@ export async function updateOrganizationAction(data: { name: string }) {
   }
 }
 
+export async function updateOrganizationLogoAction(logo: string | null) {
+  try {
+    const branding = await updateOrganizationLogo(logo);
+    revalidatePath("/settings/organization");
+    revalidatePath("/dashboard");
+    revalidatePath("/forms");
+    return { success: true as const, branding };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+/** Set an initial password for OAuth-only users (Better Auth server API). */
+export async function setPasswordAction(newPassword: string) {
+  try {
+    if (newPassword.length < 8) {
+      return { error: "Password must be at least 8 characters." };
+    }
+    if (newPassword.length > 128) {
+      return { error: "Password must be at most 128 characters." };
+    }
+
+    await auth.api.setPassword({
+      body: { newPassword },
+      headers: await headers(),
+    });
+    revalidatePath("/settings/profile");
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
 export async function createCustomFieldAction(data: unknown) {
   try {
     const parsed = CreateCustomFieldSchema.parse(data);
@@ -143,6 +180,18 @@ export async function deactivateCustomFieldAction(fieldId: string) {
     revalidatePath("/settings/custom-fields");
     revalidatePath("/leads/new");
     return { success: true as const, field };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function deleteCustomFieldAction(fieldId: string) {
+  try {
+    await deleteCustomField(fieldId);
+    revalidatePath("/settings/custom-fields");
+    revalidatePath("/leads/new");
+    revalidatePath("/forms");
+    return { success: true as const };
   } catch (error) {
     return actionError(error);
   }

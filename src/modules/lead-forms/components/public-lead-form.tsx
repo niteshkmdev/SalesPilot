@@ -5,11 +5,16 @@ import Script from "next/script";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { submitPublicFormAction } from "@/app/(dashboard)/forms/actions";
+import { PhoneInput } from "@/components/phone-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { PublicFormDto } from "@/modules/lead-forms/dto/lead-form.dto";
+import type {
+  PublicFormDto,
+  PublicFormFieldDto,
+} from "@/modules/lead-forms/dto/lead-form.dto";
+import { optionalPhoneFieldError } from "@/shared/phone";
 
 interface PublicLeadFormProps {
   orgSlug: string;
@@ -31,11 +36,14 @@ export function PublicLeadForm({
   const [pending, startTransition] = useTransition();
   const [submitted, setSubmitted] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const sortedFields = useMemo(
     () => [...form.fields].sort((a, b) => a.displayOrder - b.displayOrder),
     [form.fields],
   );
+
+  const fieldRows = useMemo(() => buildFieldRows(sortedFields), [sortedFields]);
 
   const accent = form.branding.accentColor || form.branding.primaryColor;
 
@@ -43,9 +51,28 @@ export function PublicLeadForm({
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const values: Record<string, unknown> = {};
+    const nextErrors: Record<string, string> = {};
+
     for (const field of sortedFields) {
-      values[field.key] = String(formData.get(field.key) ?? "");
+      const raw = String(formData.get(field.key) ?? "");
+      values[field.key] = raw;
+
+      if (
+        (field.key === "core:phone" || field.inputType === "tel") &&
+        raw.trim()
+      ) {
+        const phoneError = optionalPhoneFieldError(raw);
+        if (phoneError) {
+          nextErrors[field.key] = phoneError;
+        }
+      }
     }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
+      return;
+    }
+    setFieldErrors({});
 
     startTransition(async () => {
       const result = await submitPublicFormAction({
@@ -55,6 +82,15 @@ export function PublicLeadForm({
         turnstileToken: turnstileToken || undefined,
       });
       if ("error" in result) {
+        if (/phone/i.test(result.error)) {
+          const phoneField = sortedFields.find(
+            (f) => f.key === "core:phone" || f.inputType === "tel",
+          );
+          if (phoneField) {
+            setFieldErrors({ [phoneField.key]: result.error });
+            return;
+          }
+        }
         toast.error(result.error);
         return;
       }
@@ -74,20 +110,21 @@ export function PublicLeadForm({
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        {form.branding.logo ? (
+        {form.brandingDisplay !== "NAME" && form.branding.logo ? (
           <Image
             src={form.branding.logo}
-            alt=""
+            alt={form.organizationName}
             width={160}
             height={40}
             unoptimized
             className="h-10 w-auto object-contain"
           />
-        ) : (
+        ) : null}
+        {form.brandingDisplay !== "LOGO" || !form.branding.logo ? (
           <p className="text-sm font-medium text-muted-foreground">
             {form.organizationName}
           </p>
-        )}
+        ) : null}
         <div>
           <h1
             className="text-3xl font-semibold tracking-tight"
@@ -102,52 +139,54 @@ export function PublicLeadForm({
       </header>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {sortedFields.map((field) => {
-          const id = `public-${field.key}`;
-          if (field.inputType === "textarea") {
+        {fieldRows.map((row) => {
+          if (row.type === "pair") {
             return (
-              <div key={field.key} className="flex flex-col gap-2">
-                <Label htmlFor={id}>
-                  {field.label}
-                  {field.required ? " *" : ""}
-                </Label>
-                <Textarea
-                  id={id}
-                  name={field.key}
-                  required={field.required}
-                  placeholder={field.placeholder ?? undefined}
-                  disabled={pending}
-                  rows={4}
+              <div
+                key={`${row.left.key}-${row.right.key}`}
+                className="grid gap-4 sm:grid-cols-2"
+              >
+                <PublicFieldControl
+                  field={row.left}
+                  pending={pending}
+                  error={fieldErrors[row.left.key]}
+                  onClearError={() =>
+                    setFieldErrors((prev) => {
+                      const next = { ...prev };
+                      delete next[row.left.key];
+                      return next;
+                    })
+                  }
                 />
-                {field.helpText ? (
-                  <p className="text-xs text-muted-foreground">
-                    {field.helpText}
-                  </p>
-                ) : null}
+                <PublicFieldControl
+                  field={row.right}
+                  pending={pending}
+                  error={fieldErrors[row.right.key]}
+                  onClearError={() =>
+                    setFieldErrors((prev) => {
+                      const next = { ...prev };
+                      delete next[row.right.key];
+                      return next;
+                    })
+                  }
+                />
               </div>
             );
           }
-
           return (
-            <div key={field.key} className="flex flex-col gap-2">
-              <Label htmlFor={id}>
-                {field.label}
-                {field.required ? " *" : ""}
-              </Label>
-              <Input
-                id={id}
-                name={field.key}
-                type={field.inputType}
-                required={field.required}
-                placeholder={field.placeholder ?? undefined}
-                disabled={pending}
-              />
-              {field.helpText ? (
-                <p className="text-xs text-muted-foreground">
-                  {field.helpText}
-                </p>
-              ) : null}
-            </div>
+            <PublicFieldControl
+              key={row.field.key}
+              field={row.field}
+              pending={pending}
+              error={fieldErrors[row.field.key]}
+              onClearError={() =>
+                setFieldErrors((prev) => {
+                  const next = { ...prev };
+                  delete next[row.field.key];
+                  return next;
+                })
+              }
+            />
           );
         })}
 
@@ -158,21 +197,142 @@ export function PublicLeadForm({
               async
               defer
             />
-            <div
-              className="cf-turnstile"
-              data-sitekey={form.turnstileSiteKey}
-              data-callback="onSalesPilotTurnstile"
-              ref={() => {
-                window.onSalesPilotTurnstile = setTurnstileToken;
-              }}
-            />
+            <div className="flex w-full justify-center">
+              <div
+                className="cf-turnstile"
+                data-sitekey={form.turnstileSiteKey}
+                data-callback="onSalesPilotTurnstile"
+                ref={() => {
+                  window.onSalesPilotTurnstile = setTurnstileToken;
+                }}
+              />
+            </div>
           </>
         ) : null}
 
-        <Button type="submit" disabled={pending} className="w-full">
+        <Button type="submit" disabled={pending} className="h-11 w-full">
           {pending ? "Submitting…" : "Submit"}
         </Button>
       </form>
+    </div>
+  );
+}
+
+type FieldRow =
+  | { type: "single"; field: PublicFormFieldDto }
+  | { type: "pair"; left: PublicFormFieldDto; right: PublicFormFieldDto };
+
+function buildFieldRows(fields: PublicFormFieldDto[]): FieldRow[] {
+  const firstName = fields.find((f) => f.key === "core:firstName");
+  const lastName = fields.find((f) => f.key === "core:lastName");
+  const canPair = Boolean(firstName && lastName);
+  const rows: FieldRow[] = [];
+  let paired = false;
+
+  for (const field of fields) {
+    if (
+      canPair &&
+      (field.key === "core:firstName" || field.key === "core:lastName")
+    ) {
+      if (!paired && firstName && lastName) {
+        rows.push({ type: "pair", left: firstName, right: lastName });
+        paired = true;
+      }
+      continue;
+    }
+    rows.push({ type: "single", field });
+  }
+
+  return rows;
+}
+
+function PublicFieldControl({
+  field,
+  pending,
+  error,
+  onClearError,
+}: {
+  field: PublicFormFieldDto;
+  pending: boolean;
+  error?: string;
+  onClearError: () => void;
+}) {
+  const id = `public-${field.key}`;
+  const isPhone = field.key === "core:phone" || field.inputType === "tel";
+
+  if (field.inputType === "textarea") {
+    return (
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id}>
+          {field.label}
+          {field.required ? " *" : ""}
+        </Label>
+        <Textarea
+          id={id}
+          name={field.key}
+          required={field.required}
+          placeholder={field.placeholder ?? undefined}
+          disabled={pending}
+          rows={4}
+          className="min-h-28"
+        />
+        {field.helpText ? (
+          <p className="text-xs text-muted-foreground">{field.helpText}</p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (isPhone) {
+    return (
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id}>
+          {field.label}
+          {field.required ? " *" : ""}
+        </Label>
+        <PhoneInput
+          id={id}
+          name={field.key}
+          required={field.required}
+          disabled={pending}
+          size="lg"
+          placeholder={field.placeholder ?? undefined}
+          error={error ?? null}
+          onErrorChange={(next) => {
+            if (!next) onClearError();
+          }}
+        />
+        {field.helpText ? (
+          <p className="text-xs text-muted-foreground">{field.helpText}</p>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={id}>
+        {field.label}
+        {field.required ? " *" : ""}
+      </Label>
+      <Input
+        id={id}
+        name={field.key}
+        type={field.inputType}
+        required={field.required}
+        placeholder={field.placeholder ?? undefined}
+        disabled={pending}
+        className="h-11"
+        aria-invalid={Boolean(error)}
+      />
+      {error ? (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {field.helpText ? (
+        <p className="text-xs text-muted-foreground">{field.helpText}</p>
+      ) : null}
     </div>
   );
 }

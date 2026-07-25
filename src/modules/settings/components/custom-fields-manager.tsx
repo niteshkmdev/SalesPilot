@@ -1,15 +1,18 @@
 "use client";
 
+import { Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   createCustomFieldAction,
   deactivateCustomFieldAction,
+  deleteCustomFieldAction,
   updateCustomFieldAction,
 } from "@/app/(dashboard)/settings/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -56,10 +59,7 @@ interface CustomFieldsManagerProps {
   canManage: boolean;
 }
 
-export function CustomFieldsManager({
-  fields,
-  canManage,
-}: CustomFieldsManagerProps) {
+export function CustomFieldsAddButton({ canManage }: { canManage: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [createOpen, setCreateOpen] = useState(false);
@@ -68,6 +68,8 @@ export function CustomFieldsManager({
   const [required, setRequired] = useState(false);
   const [placeholder, setPlaceholder] = useState("");
   const [helpText, setHelpText] = useState("");
+
+  if (!canManage) return null;
 
   const resetCreate = () => {
     setName("");
@@ -97,6 +99,109 @@ export function CustomFieldsManager({
     });
   };
 
+  return (
+    <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <DialogTrigger asChild>
+        <Button type="button">
+          <Plus data-icon="inline-start" />
+          Add field
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New custom field</DialogTitle>
+          <DialogDescription>
+            Choose a label and type. Type cannot be changed after create.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-4 py-2">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="cf-name">Name</Label>
+            <Input
+              id="cf-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Industry"
+              maxLength={80}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="cf-type">Type</Label>
+            <Select
+              value={type}
+              onValueChange={(value) => setType(value as MvpCustomFieldType)}
+            >
+              <SelectTrigger id="cf-type" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {mvpCustomFieldTypes.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {typeLabels[option]}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="cf-placeholder">Placeholder</Label>
+            <Input
+              id="cf-placeholder"
+              value={placeholder}
+              onChange={(e) => setPlaceholder(e.target.value)}
+              maxLength={160}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="cf-help">Help text</Label>
+            <Input
+              id="cf-help"
+              value={helpText}
+              onChange={(e) => setHelpText(e.target.value)}
+              maxLength={280}
+            />
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <Checkbox
+              id="cf-required"
+              checked={required}
+              onCheckedChange={(checked) => setRequired(checked === true)}
+            />
+            <Label htmlFor="cf-required">Required</Label>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setCreateOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={pending || name.trim().length < 1}
+            onClick={handleCreate}
+          >
+            {pending ? "Creating…" : "Create"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function CustomFieldsManager({
+  fields,
+  canManage,
+}: CustomFieldsManagerProps) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [deleteTarget, setDeleteTarget] = useState<CustomFieldDto | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   const handleToggleActive = (field: CustomFieldDto) => {
     startTransition(async () => {
       const result = field.active
@@ -125,106 +230,29 @@ export function CustomFieldsManager({
     });
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const result = await deleteCustomFieldAction(deleteTarget.id);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Custom field deleted");
+      setDeleteTarget(null);
+      router.refresh();
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Something went wrong.";
+      toast.error(message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          Define extra fields that appear on leads and can be added to public
-          forms.
-        </p>
-        {canManage ? (
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button type="button">Add field</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>New custom field</DialogTitle>
-                <DialogDescription>
-                  Choose a label and type. Type cannot be changed after create.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex flex-col gap-4 py-2">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="cf-name">Name</Label>
-                  <Input
-                    id="cf-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Industry"
-                    maxLength={80}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="cf-type">Type</Label>
-                  <Select
-                    value={type}
-                    onValueChange={(value) =>
-                      setType(value as MvpCustomFieldType)
-                    }
-                  >
-                    <SelectTrigger id="cf-type" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {mvpCustomFieldTypes.map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {typeLabels[option]}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="cf-placeholder">Placeholder</Label>
-                  <Input
-                    id="cf-placeholder"
-                    value={placeholder}
-                    onChange={(e) => setPlaceholder(e.target.value)}
-                    maxLength={160}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="cf-help">Help text</Label>
-                  <Input
-                    id="cf-help"
-                    value={helpText}
-                    onChange={(e) => setHelpText(e.target.value)}
-                    maxLength={280}
-                  />
-                </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={required}
-                    onChange={(e) => setRequired(e.target.checked)}
-                  />
-                  Required
-                </label>
-              </div>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCreateOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  disabled={pending || name.trim().length < 1}
-                  onClick={handleCreate}
-                >
-                  {pending ? "Creating…" : "Create"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        ) : null}
-      </div>
-
       {fields.length === 0 ? (
         <p className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
           No custom fields yet.
@@ -280,15 +308,30 @@ export function CustomFieldsManager({
                   </TableCell>
                   {canManage ? (
                     <TableCell className="text-right">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={pending}
-                        onClick={() => handleToggleActive(field)}
-                      >
-                        {field.active ? "Deactivate" : "Reactivate"}
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={pending}
+                          onClick={() => handleToggleActive(field)}
+                        >
+                          {field.active ? "Deactivate" : "Reactivate"}
+                        </Button>
+                        {!field.active ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            aria-label={`Delete ${field.name}`}
+                            disabled={pending}
+                            onClick={() => setDeleteTarget(field)}
+                          >
+                            <Trash2 />
+                          </Button>
+                        ) : null}
+                      </div>
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -297,6 +340,51 @@ export function CustomFieldsManager({
           </Table>
         </div>
       )}
+
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete custom field?</DialogTitle>
+            <DialogDescription>
+              This permanently removes
+              {deleteTarget ? (
+                <>
+                  {" "}
+                  <span className="font-medium text-foreground">
+                    {deleteTarget.name}
+                  </span>
+                </>
+              ) : (
+                " the field"
+              )}{" "}
+              and its values from leads. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

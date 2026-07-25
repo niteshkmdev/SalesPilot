@@ -64,6 +64,39 @@ vi.mock("@/modules/organizations/repository/member.repository", () => ({
   findMemberById: mocks.findMemberById,
 }));
 
+vi.mock("@/modules/leads/services/lead-side-effects", () => ({
+  applyLeadSideEffects: vi.fn().mockResolvedValue(undefined),
+  buildCreateLeadSideEffects: vi.fn(() => ({
+    organizationId: "org1",
+    actorId: "m1",
+    leadId: "lead1",
+    activities: [],
+    notifications: [],
+  })),
+  buildUpdateLeadSideEffects: vi.fn(() => ({
+    organizationId: "org1",
+    actorId: "m1",
+    leadId: "lead1",
+    activities: [],
+    notifications: [],
+  })),
+  buildAssignLeadSideEffects: vi.fn(() => ({
+    organizationId: "org1",
+    actorId: "m1",
+    leadId: "lead1",
+    activities: [],
+    notifications: [],
+  })),
+  buildDeleteLeadSideEffects: vi.fn(() => ({
+    organizationId: "org1",
+    actorId: "m1",
+    leadId: "lead1",
+    activities: [],
+    notifications: [],
+  })),
+  toLeadSnapshot: vi.fn((lead: { id: string }) => lead),
+}));
+
 function memberContext(
   permissions: string[],
   roleName: string = systemRoleNames.member,
@@ -372,6 +405,7 @@ describe("lead.service authz and assignment", () => {
       firstName: "Ada",
       lastName: "Lovelace",
       email: "ada@example.com",
+      phone: "",
       statusId: "st1",
     });
 
@@ -398,6 +432,7 @@ describe("lead.service authz and assignment", () => {
       firstName: "Ada",
       lastName: "Lovelace",
       email: "ada@example.com",
+      phone: "",
       statusId: "st1",
     });
 

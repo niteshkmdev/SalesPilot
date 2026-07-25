@@ -7,6 +7,7 @@ export {
   formCoreKeys,
   type LeadFormDetailDto,
   type LeadFormListItemDto,
+  normalizeFormFieldsOrder,
   type PublicFormDto,
   type PublicFormFieldDto,
   PublicFormSubmitSchema,
@@ -23,6 +24,8 @@ export {
   getPublicForm,
   listOrganizationLeadForms,
   publishLeadForm,
+  softDeleteLeadForm,
   submitPublicForm,
+  unarchiveLeadForm,
   updateLeadForm,
 } from "@/modules/lead-forms/services/lead-form.service";

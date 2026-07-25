@@ -29,6 +29,7 @@ export async function requireAppContext(): Promise<OrganizationContext> {
       id: member.organization.id,
       name: member.organization.name,
       slug: member.organization.slug,
+      logo: member.organization.branding?.logo ?? null,
     },
     member: {
       id: member.id,

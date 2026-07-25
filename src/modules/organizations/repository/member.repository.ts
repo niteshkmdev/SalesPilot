@@ -16,6 +16,9 @@ export interface MemberWithContext extends OrganizationMember {
     slug: string;
     createdAt: Date;
     updatedAt: Date;
+    branding: {
+      logo: string | null;
+    } | null;
   };
   role: {
     id: string;
@@ -77,7 +80,9 @@ export async function findFirstActiveMemberByUserId(
   return db.organizationMember.findFirst({
     where: { userId },
     include: {
-      organization: true,
+      organization: {
+        include: { branding: true },
+      },
       role: {
         include: {
           rolePermissions: {

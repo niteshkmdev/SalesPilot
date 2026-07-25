@@ -8,8 +8,10 @@ import {
   createLeadForm,
   PublicFormSubmitSchema,
   publishLeadForm,
+  softDeleteLeadForm,
   submitPublicForm,
   UpdateLeadFormSchema,
+  unarchiveLeadForm,
   updateLeadForm,
 } from "@/modules/lead-forms";
 import { AppError } from "@/shared/api/errors";
@@ -27,6 +29,7 @@ function actionError(error: unknown): { error: string } {
 function revalidateForms(formId?: string) {
   revalidatePath("/forms");
   if (formId) {
+    revalidatePath(`/forms/view/${formId}`);
     revalidatePath(`/forms/edit/${formId}`);
   }
 }
@@ -66,6 +69,26 @@ export async function publishLeadFormAction(formId: string) {
 export async function archiveLeadFormAction(formId: string) {
   try {
     await archiveLeadForm(formId);
+    revalidateForms(formId);
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function unarchiveLeadFormAction(formId: string) {
+  try {
+    await unarchiveLeadForm(formId);
+    revalidateForms(formId);
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function softDeleteLeadFormAction(formId: string) {
+  try {
+    await softDeleteLeadForm(formId);
     revalidateForms(formId);
     return { success: true as const };
   } catch (error) {

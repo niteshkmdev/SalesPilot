@@ -83,6 +83,7 @@ describe("requireAppContext", () => {
         id: "org_1",
         name: "Acme",
         slug: "acme",
+        logo: null,
       },
       member: {
         id: "member_1",

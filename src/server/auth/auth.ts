@@ -100,6 +100,31 @@ export const auth = betterAuth({
   },
 
   // ---------------------------------------------------------------------------
+  // User profile (additional fields) + account linking
+  // ---------------------------------------------------------------------------
+  user: {
+    additionalFields: {
+      phone: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      gender: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+    },
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+      allowDifferentEmails: false,
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // Email + Password provider
   // ---------------------------------------------------------------------------
   emailAndPassword: {

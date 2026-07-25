@@ -43,6 +43,14 @@ import {
   canEditWithoutAssign,
   mergeLeadListWhere,
 } from "@/modules/leads/services/lead-access";
+import {
+  applyLeadSideEffects,
+  buildAssignLeadSideEffects,
+  buildCreateLeadSideEffects,
+  buildDeleteLeadSideEffects,
+  buildUpdateLeadSideEffects,
+  toLeadSnapshot,
+} from "@/modules/leads/services/lead-side-effects";
 import { systemRoleNames } from "@/modules/organizations/constants/default-roles";
 import {
   findMemberById,
@@ -183,6 +191,16 @@ export async function createLead(data: CreateLeadDto): Promise<{ id: string }> {
     return created;
   });
 
+  const created = await findLeadById(prisma, lead.id, ctx.organization.id);
+  if (created) {
+    await applyLeadSideEffects(
+      buildCreateLeadSideEffects({
+        actorId: ctx.member.id,
+        lead: toLeadSnapshot(created),
+      }),
+    );
+  }
+
   return { id: lead.id };
 }
 
@@ -261,6 +279,8 @@ export async function updateLead(
     );
   }
 
+  const before = toLeadSnapshot(lead);
+
   await prisma.$transaction(async (tx) => {
     await updateLeadRecord(tx, leadId, ctx.member.id, {
       ...leadFields,
@@ -270,6 +290,25 @@ export async function updateLead(
       await replaceLeadCustomValues(tx, leadId, customValueRows);
     }
   });
+
+  const updated = await findLeadById(prisma, leadId, ctx.organization.id);
+  if (updated) {
+    let resolvedStatusName: string | undefined;
+    if (payload.statusId !== undefined && payload.statusId !== lead.statusId) {
+      resolvedStatusName = updated.status?.name;
+    }
+
+    await applyLeadSideEffects(
+      buildUpdateLeadSideEffects({
+        actorId: ctx.member.id,
+        before,
+        after: toLeadSnapshot(updated),
+        payload,
+        customValuesChanged: customValueRows !== undefined,
+        resolvedStatusName,
+      }),
+    );
+  }
 }
 
 export async function assignLead(
@@ -318,6 +357,20 @@ export async function assignLead(
     );
   }
 
+  const before = toLeadSnapshot(lead);
+  const nextMemberId =
+    assignedMemberId === undefined
+      ? lead.assignedMemberId
+      : emptyToNull(assignedMemberId);
+  const nextManagerId =
+    assignedManagerId === undefined
+      ? lead.assignedManagerId
+      : emptyToNull(assignedManagerId);
+  const memberChanged =
+    assignedMemberId !== undefined && nextMemberId !== lead.assignedMemberId;
+  const managerChanged =
+    assignedManagerId !== undefined && nextManagerId !== lead.assignedManagerId;
+
   await updateLeadRecord(prisma, leadId, ctx.member.id, {
     assignedMemberId,
     assignedManagerId,
@@ -327,6 +380,17 @@ export async function assignLead(
   if (!updated) {
     throw notFound("Lead not found.");
   }
+
+  await applyLeadSideEffects(
+    buildAssignLeadSideEffects({
+      actorId: ctx.member.id,
+      before,
+      after: toLeadSnapshot(updated),
+      memberChanged,
+      managerChanged,
+    }),
+  );
+
   const customValues = await getLeadCustomValues(leadId);
   return toLeadDetailDto(updated, customValues);
 }
@@ -402,7 +466,14 @@ export async function deleteLead(leadId: string): Promise<void> {
 
   assertLeadVisible(lead, ctx.member.roleName, ctx.member.id);
 
+  const before = toLeadSnapshot(lead);
   await softDeleteLead(prisma, leadId, ctx.member.id);
+  await applyLeadSideEffects(
+    buildDeleteLeadSideEffects({
+      actorId: ctx.member.id,
+      lead: before,
+    }),
+  );
 }
 
 export async function listLeadStatuses(): Promise<LeadStatusDto[]> {

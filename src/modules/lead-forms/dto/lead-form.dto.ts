@@ -1,5 +1,9 @@
-import type { LeadFormStatus } from "@prisma/client";
+import type { FormBrandingDisplay, LeadFormStatus } from "@prisma/client";
 import { z } from "zod";
+
+export const FormBrandingDisplayValues = ["LOGO", "NAME", "BOTH"] as const;
+export type FormBrandingDisplayValue =
+  (typeof FormBrandingDisplayValues)[number];
 
 export const formCoreKeys = [
   "firstName",
@@ -72,6 +76,28 @@ export function defaultFormFields(): FormFieldConfig[] {
   ];
 }
 
+/**
+ * Canonical public/editor order: all selected core fields (in formCoreKeys
+ * order), then custom fields (stable relative order). Prevents toggle-order
+ * from pushing a core field like phone below custom fields.
+ */
+export function normalizeFormFieldsOrder(
+  fields: FormFieldConfig[],
+): FormFieldConfig[] {
+  const cores = formCoreKeys
+    .map((coreKey) =>
+      fields.find((f) => f.kind === "core" && f.coreKey === coreKey),
+    )
+    .filter((f): f is FormFieldConfig => Boolean(f));
+
+  const customs = fields.filter((f) => f.kind === "custom");
+
+  return [...cores, ...customs].map((field, index) => ({
+    ...field,
+    displayOrder: (index + 1) * 10,
+  }));
+}
+
 export const CreateLeadFormSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120),
   slug: z
@@ -85,6 +111,7 @@ export const CreateLeadFormSchema = z.object({
   defaultAssignedManagerId: z.string().optional().or(z.literal("")),
   successMessage: z.string().trim().max(500).optional().or(z.literal("")),
   allowIndexing: z.boolean().optional().default(false),
+  brandingDisplay: z.enum(FormBrandingDisplayValues).optional().default("BOTH"),
 });
 
 export type CreateLeadFormDto = z.infer<typeof CreateLeadFormSchema>;
@@ -103,6 +130,7 @@ export const UpdateLeadFormSchema = z.object({
   defaultAssignedManagerId: z.string().optional().nullable(),
   successMessage: z.string().trim().max(500).optional().nullable(),
   allowIndexing: z.boolean().optional(),
+  brandingDisplay: z.enum(FormBrandingDisplayValues).optional(),
 });
 
 export type UpdateLeadFormDto = z.infer<typeof UpdateLeadFormSchema>;
@@ -131,6 +159,7 @@ export interface LeadFormDetailDto {
   slug: string;
   description: string | null;
   status: LeadFormStatus;
+  brandingDisplay: FormBrandingDisplay;
   fields: FormFieldConfig[];
   defaultAssignedManagerId: string | null;
   successMessage: string | null;
@@ -138,6 +167,7 @@ export interface LeadFormDetailDto {
   createdAt: string;
   updatedAt: string;
   publicPath: string;
+  organizationLogo: string | null;
 }
 
 export interface PublicFormFieldDto {
@@ -156,6 +186,7 @@ export interface PublicFormDto {
   description: string | null;
   successMessage: string | null;
   allowIndexing: boolean;
+  brandingDisplay: FormBrandingDisplay;
   fields: PublicFormFieldDto[];
   branding: {
     logo: string | null;

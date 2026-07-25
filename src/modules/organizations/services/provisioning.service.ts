@@ -83,6 +83,7 @@ export async function provisionOrganizationForUser(
         id: organization.id,
         name: organization.name,
         slug: organization.slug,
+        logo: null,
       },
       member: {
         id: member.id,

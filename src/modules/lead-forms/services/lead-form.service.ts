@@ -1,5 +1,7 @@
 import type { Prisma } from "@prisma/client";
+import { LeadActivityAction, recordLeadActivity } from "@/modules/activity";
 import { requireAppContext } from "@/modules/auth/services/app-context.service";
+import { findBrandingByOrganizationId } from "@/modules/branding";
 import {
   findCustomFieldsByIds,
   listCustomFieldRecords,
@@ -15,12 +17,12 @@ import {
   type FormFieldConfig,
   type LeadFormDetailDto,
   type LeadFormListItemDto,
+  normalizeFormFieldsOrder,
   type PublicFormDto,
   type PublicFormFieldDto,
   type UpdateLeadFormDto,
 } from "@/modules/lead-forms/dto/lead-form.dto";
 import {
-  createActivityRecord,
   createFormSubmissionRecord,
   createLeadFormRecord,
   findLeadFormById,
@@ -33,6 +35,7 @@ import {
   toLeadFormListItemDto,
   updateLeadFormRecord,
 } from "@/modules/lead-forms/repository/lead-form.repository";
+import { resolveFormBrandingDisplay } from "@/modules/lead-forms/services/form-branding-display";
 import { assertPublicSubmitRateLimit } from "@/modules/lead-forms/services/rate-limit";
 import {
   getTurnstileSiteKey,
@@ -55,6 +58,12 @@ import {
   notFound,
   validationFailed,
 } from "@/shared/api/errors";
+import { validateOptionalPhoneValue } from "@/shared/phone";
+
+async function orgLogoUrl(organizationId: string): Promise<string | null> {
+  const branding = await findBrandingByOrganizationId(prisma, organizationId);
+  return branding?.logo ?? null;
+}
 
 function validateFieldsConfig(
   fields: FormFieldConfig[],
@@ -82,11 +91,22 @@ function validateFieldsConfig(
       }
     }
   }
-  const hasName = fields.some(
+  const hasFirstName = fields.some(
     (f) => f.kind === "core" && f.coreKey === "firstName",
   );
-  if (!hasName) {
+  if (!hasFirstName) {
     throw validationFailed("Form must include first name.");
+  }
+  const emailField = fields.find(
+    (f) => f.kind === "core" && f.coreKey === "email",
+  );
+  if (!emailField) {
+    throw validationFailed(
+      "Form must include email (used for duplicate detection).",
+    );
+  }
+  if (!emailField.required) {
+    throw validationFailed("Email must be required.");
   }
 }
 
@@ -124,18 +144,28 @@ async function assertManagerAssignee(
   }
 }
 
-export async function listOrganizationLeadForms(): Promise<
-  LeadFormListItemDto[]
-> {
+export async function listOrganizationLeadForms(filters?: {
+  q?: string;
+  status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+}): Promise<LeadFormListItemDto[]> {
   const ctx = await requireAppContext();
   await createAuthorizationService(ctx.permissions).require(
     Permissions.FORM_READ,
   );
 
   const forms = await listLeadForms(prisma, ctx.organization.id);
-  return forms.map((form) =>
-    toLeadFormListItemDto(form, ctx.organization.slug),
-  );
+  const q = filters?.q?.trim().toLowerCase();
+
+  return forms
+    .filter((form) => {
+      if (filters?.status && form.status !== filters.status) return false;
+      if (!q) return true;
+      return (
+        form.name.toLowerCase().includes(q) ||
+        form.slug.toLowerCase().includes(q)
+      );
+    })
+    .map((form) => toLeadFormListItemDto(form, ctx.organization.slug));
 }
 
 export async function getLeadForm(formId: string): Promise<LeadFormDetailDto> {
@@ -146,7 +176,8 @@ export async function getLeadForm(formId: string): Promise<LeadFormDetailDto> {
 
   const form = await findLeadFormById(prisma, ctx.organization.id, formId);
   if (!form) throw notFound("Form not found.");
-  return toLeadFormDetailDto(form, ctx.organization.slug);
+  const logo = await orgLogoUrl(ctx.organization.id);
+  return toLeadFormDetailDto(form, ctx.organization.slug, logo);
 }
 
 export async function createLeadForm(
@@ -161,12 +192,20 @@ export async function createLeadForm(
     throw validationFailed("A form with this slug already exists.");
   }
 
-  const fields = data.fields?.length ? data.fields : defaultFormFields();
+  const fields = normalizeFormFieldsOrder(
+    data.fields?.length ? data.fields : defaultFormFields(),
+  );
   const known = await resolveKnownCustomIds(ctx.organization.id);
   validateFieldsConfig(fields, known);
 
   const managerId = emptyToNull(data.defaultAssignedManagerId);
   await assertManagerAssignee(ctx.organization.id, managerId);
+
+  const logo = await orgLogoUrl(ctx.organization.id);
+  const brandingDisplay = resolveFormBrandingDisplay(
+    data.brandingDisplay,
+    Boolean(logo),
+  );
 
   const form = await createLeadFormRecord(prisma, {
     organizationId: ctx.organization.id,
@@ -177,10 +216,11 @@ export async function createLeadForm(
     defaultAssignedManagerId: managerId,
     successMessage: emptyToNull(data.successMessage),
     allowIndexing: data.allowIndexing ?? false,
+    brandingDisplay,
     createdBy: ctx.member.id,
   });
 
-  return toLeadFormDetailDto(form, ctx.organization.slug);
+  return toLeadFormDetailDto(form, ctx.organization.slug, logo);
 }
 
 export async function updateLeadForm(
@@ -206,12 +246,22 @@ export async function updateLeadForm(
     validateFieldsConfig(data.fields, known);
   }
 
+  const normalizedFields = data.fields
+    ? normalizeFormFieldsOrder(data.fields)
+    : undefined;
+
   if (data.defaultAssignedManagerId !== undefined) {
     await assertManagerAssignee(
       ctx.organization.id,
       data.defaultAssignedManagerId,
     );
   }
+
+  const logo = await orgLogoUrl(ctx.organization.id);
+  const brandingDisplay =
+    data.brandingDisplay !== undefined
+      ? resolveFormBrandingDisplay(data.brandingDisplay, Boolean(logo))
+      : undefined;
 
   const form = await updateLeadFormRecord(prisma, formId, ctx.member.id, {
     name: data.name?.trim(),
@@ -222,7 +272,7 @@ export async function updateLeadForm(
         : data.description === null
           ? null
           : emptyToNull(data.description),
-    fields: data.fields,
+    fields: normalizedFields,
     defaultAssignedManagerId: data.defaultAssignedManagerId,
     successMessage:
       data.successMessage === undefined
@@ -231,9 +281,10 @@ export async function updateLeadForm(
           ? null
           : emptyToNull(data.successMessage),
     allowIndexing: data.allowIndexing,
+    brandingDisplay,
   });
 
-  return toLeadFormDetailDto(form, ctx.organization.slug);
+  return toLeadFormDetailDto(form, ctx.organization.slug, logo);
 }
 
 export async function publishLeadForm(
@@ -253,7 +304,8 @@ export async function publishLeadForm(
   const form = await updateLeadFormRecord(prisma, formId, ctx.member.id, {
     status: "PUBLISHED",
   });
-  return toLeadFormDetailDto(form, ctx.organization.slug);
+  const logo = await orgLogoUrl(ctx.organization.id);
+  return toLeadFormDetailDto(form, ctx.organization.slug, logo);
 }
 
 export async function archiveLeadForm(
@@ -270,7 +322,43 @@ export async function archiveLeadForm(
   const form = await updateLeadFormRecord(prisma, formId, ctx.member.id, {
     status: "ARCHIVED",
   });
-  return toLeadFormDetailDto(form, ctx.organization.slug);
+  const logo = await orgLogoUrl(ctx.organization.id);
+  return toLeadFormDetailDto(form, ctx.organization.slug, logo);
+}
+
+export async function unarchiveLeadForm(
+  formId: string,
+): Promise<LeadFormDetailDto> {
+  const ctx = await requireAppContext();
+  await createAuthorizationService(ctx.permissions).require(
+    Permissions.FORM_ARCHIVE,
+  );
+
+  const existing = await findLeadFormById(prisma, ctx.organization.id, formId);
+  if (!existing) throw notFound("Form not found.");
+  if (existing.status !== "ARCHIVED") {
+    throw validationFailed("Only archived forms can be unarchived.");
+  }
+
+  const form = await updateLeadFormRecord(prisma, formId, ctx.member.id, {
+    status: "DRAFT",
+  });
+  const logo = await orgLogoUrl(ctx.organization.id);
+  return toLeadFormDetailDto(form, ctx.organization.slug, logo);
+}
+
+export async function softDeleteLeadForm(formId: string): Promise<void> {
+  const ctx = await requireAppContext();
+  await createAuthorizationService(ctx.permissions).require(
+    Permissions.FORM_DELETE,
+  );
+
+  const existing = await findLeadFormById(prisma, ctx.organization.id, formId);
+  if (!existing) throw notFound("Form not found.");
+
+  await updateLeadFormRecord(prisma, formId, ctx.member.id, {
+    deletedAt: new Date(),
+  });
 }
 
 export async function getFormCapabilities() {
@@ -282,6 +370,7 @@ export async function getFormCapabilities() {
     canUpdate: await authz.can(Permissions.FORM_UPDATE),
     canPublish: await authz.can(Permissions.FORM_PUBLISH),
     canArchive: await authz.can(Permissions.FORM_ARCHIVE),
+    canDelete: await authz.can(Permissions.FORM_DELETE),
   };
 }
 
@@ -300,9 +389,7 @@ export async function getPublicForm(
   const form = await findPublishedFormByOrgAndSlug(prisma, orgSlug, formSlug);
   if (!form) throw notFound("Form not found.");
 
-  const configs = parseFormFields(form.fields).sort(
-    (a, b) => a.displayOrder - b.displayOrder,
-  );
+  const configs = normalizeFormFieldsOrder(parseFormFields(form.fields));
   const customIds = configs
     .filter((c) => c.kind === "custom" && c.customFieldId)
     .map((c) => c.customFieldId as string);
@@ -361,6 +448,10 @@ export async function getPublicForm(
       form.successMessage ||
       "Thank you! Your information has been received. Our team will contact you soon.",
     allowIndexing: form.allowIndexing,
+    brandingDisplay: resolveFormBrandingDisplay(
+      form.brandingDisplay,
+      Boolean(form.organization.branding?.logo),
+    ),
     fields,
     branding: {
       logo: form.organization.branding?.logo ?? null,
@@ -429,6 +520,16 @@ export async function submitPublicForm(input: {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
           throw validationFailed("Email must be a valid email.");
         }
+      }
+      if (config.coreKey === "phone" && text) {
+        const phoneCheck = validateOptionalPhoneValue(text);
+        if (!phoneCheck.ok || !phoneCheck.e164) {
+          throw validationFailed(
+            phoneCheck.ok ? "Enter a valid phone number." : phoneCheck.message,
+          );
+        }
+        core[config.coreKey] = phoneCheck.e164;
+        continue;
       }
       core[config.coreKey] = text;
     } else if (config.kind === "custom" && config.customFieldId) {
@@ -519,12 +620,11 @@ export async function submitPublicForm(input: {
       userAgent: input.userAgent ?? null,
     });
 
-    await createActivityRecord(tx, {
+    await recordLeadActivity(tx, {
       organizationId: form.organizationId,
       actorId: form.createdBy,
-      entityType: "lead",
-      entityId: lead.id,
-      action: "lead.created_from_form",
+      leadId: lead.id,
+      action: LeadActivityAction.CREATED_FROM_FORM,
       metadata: {
         formId: form.id,
         submissionId: submission.id,
