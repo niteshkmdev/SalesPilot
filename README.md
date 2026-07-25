@@ -1,13 +1,15 @@
 # SalesPilot
 
-**A production-minded, multi-tenant lead management SaaS** — capture leads from branded public forms, assign them through a role-aware pipeline, and keep the team aligned with activity and notifications.
+I built SalesPilot as a portfolio / take-home assignment for a job application.
 
-Built as a full-stack assignment to demonstrate **SaaS architecture**, **secure multi-tenancy**, **RBAC**, and **maintainable Next.js engineering** — not a throwaway demo.
+I chose a **multi-tenant CRM** on purpose. A simple CRUD app would not have forced me to think about tenancy boundaries, auth flows, or authorization the way a real SaaS product does. My goal was to show how I approach architecture, authentication, authorization, maintainability, and decisions that keep a codebase scalable.
+
+The domain is lead management: public forms create leads inside an organization, roles control who can see and update them, and activity/notifications keep a basic audit trail. The features matter, but they are the vehicle — the engineering is what I want reviewed.
 
 | Layer | Choice |
 | --- | --- |
 | Framework | Next.js App Router (React Server Components by default) |
-| Auth | Better Auth (email/password + Google OAuth) |
+| Auth | Better Auth — email/password, verification, reset, Google social login |
 | Data | Prisma ORM + MongoDB Atlas |
 | Validation | Zod |
 | UI | Tailwind + shadcn/ui (Radix) |
@@ -15,46 +17,97 @@ Built as a full-stack assignment to demonstrate **SaaS architecture**, **secure 
 
 ---
 
+## Contents
+
+1. [Why SalesPilot](#why-salespilot)
+2. [Multi-tenant SaaS](#multi-tenant-saas)
+3. [What’s built today](#whats-built-today)
+   - [Authentication & account security](#authentication--account-security)
+   - [Onboarding & organizations](#onboarding--organizations)
+   - [Members, roles & permissions](#members-roles--permissions)
+   - [Leads](#leads)
+   - [Custom fields & public forms](#custom-fields--public-forms)
+   - [Activity & notifications](#activity--notifications)
+   - [Dashboard](#dashboard-live)
+   - [Branding & storage](#branding--storage)
+4. [Architecture](#architecture)
+5. [How multi-tenancy works](#how-multi-tenancy-works)
+6. [Extension: multi-organization per user](#extension-multi-organization-per-user)
+7. [RBAC and role customization](#rbac-and-role-customization)
+8. [Forms and lead customization](#forms-and-lead-customization)
+9. [Security and operations](#security-and-operations)
+10. [Roadmap / deliberate deferrals](#roadmap--deliberate-deferrals)
+11. [Local development](#local-development)
+12. [Project documentation](#project-documentation)
+13. [Why this is a strong portfolio piece](#why-this-is-a-strong-assignment--portfolio-piece)
+
+---
+
 ## Why SalesPilot
 
-Small and mid-size sales teams still lose leads in spreadsheets, shared inboxes, and one-off form tools. SalesPilot gives an organization:
+I wanted a problem space that felt like real SaaS work, not a tutorial app. Lead management gave me concrete flows — intake, assignment, visibility rules, forms — while still being small enough to finish carefully.
+
+I structured the app as **one product, many tenants**: each organization is a hard boundary for data and access. That decision drove most of the interesting engineering.
+
+The main capabilities I implemented around that model:
 
 1. **Public intake** — shareable forms that create real CRM leads
 2. **Ownership** — assign to managers and members with clear visibility rules
 3. **Pipeline** — org-defined statuses, dashboard metrics, filters
 4. **Accountability** — activity history and in-app notifications
 
-The product is **organization-centric**: every business record belongs to an org. The current product UX resolves **one active membership** per session, while the data model already supports **users belonging to many organizations** — a deliberate path to multi-workspace SaaS without a rewrite.
+---
+
+## Multi-tenant SaaS
+
+I treated multi-tenancy as a first-class requirement, not something to add after a single-workspace prototype.
+
+- **Tenant = Organization.** Leads, forms, statuses, sources, custom fields, branding, activity, and notifications all belong to an org.
+- **Users join tenants via membership.** A user authenticates once; access is resolved through `OrganizationMember` + role + permissions.
+- **Isolation is enforced on the server.** Every business query is scoped by `organizationId`. Permissions gate *actions*; role scope gates *which rows* you can see.
+- **Product UX today** resolves one active membership per session; the **schema already supports** a user belonging to many organizations — I left that path open so multi-workspace support would not require a tenancy rewrite.
+
+Deep dive: [How multi-tenancy works](#how-multi-tenancy-works) · [`docs/23-organizations-multi-tenancy.md`](docs/23-organizations-multi-tenancy.md)
 
 ---
 
 ## What’s built today
 
-Aligned with the project tracker (Plans 01–09, 11–12, 07, 14). Honest scope: what ships vs what is designed-for extension.
+This matches what I shipped against the project tracker (Plans 01–09, 11–12, 07, 14). I try to be clear about what is implemented versus what I only designed for later.
 
-### Authentication & onboarding
+### Authentication & account security
 
-- Email/password with verification and password reset
-- Google OAuth (account linking with same-email rules)
-- First-user org provisioning; invite tokens to join an existing org
-- Session-aware marketing and dashboard shells
+I integrated Better Auth for both credential and social login. I wanted the auth surface to look like something you would actually ship, not a bare login form:
+
+- **Email / password signup & login**
+- **Email verification** — unverified users are steered to verify before using the app; resend support
+- **Forgot password / reset password** — dedicated flows (`/forgot-password`, `/reset-password`)
+- **Social login (Google OAuth)** — sign in with Google; account linking with same-email rules
+- **Profile security** — change password; link / unlink Google from settings
+- Session-aware marketing CTAs and authenticated dashboard shell
+
+### Onboarding & organizations
+
+- First-user **organization provisioning** (create tenant on signup path)
+- **Invite tokens** to join an existing org (`/invite/[token]`); invite / resend / revoke
+- Org settings (name) and member profile (avatar, phone, gender)
 
 ### Members, roles & permissions
 
 - Default system roles: **Owner**, **Admin**, **Manager**, **Member**
 - Central permission registry (`src/modules/permissions`)
-- Invite / resend / revoke; role change and remove guards
-- Org settings (name) and profile settings (avatar, phone, gender, password, Google link/unlink)
+- Role change and remove guards
+- Action permissions *and* lead row visibility — I treat UI hiding as convenience, not the security boundary
 
 ### Leads
 
 - Full create / edit / detail / list with search, filters, pagination, soft-delete
-- **Role-scoped visibility** (enforced on the server, not only in the UI):
+- **Role-scoped visibility** (enforced on the server):
   - Owner / Admin → all org leads
   - Manager → assigned as member **or** manager
   - Member → assigned as member only
 - Dual assignment (manager + member); limited updates for members without assign permission
-- Helpers live in [`src/modules/leads/services/lead-access.ts`](src/modules/leads/services/lead-access.ts)
+- Helpers: [`src/modules/leads/services/lead-access.ts`](src/modules/leads/services/lead-access.ts)
 
 ### Custom fields & public forms
 
@@ -84,7 +137,7 @@ Aligned with the project tracker (Plans 01–09, 11–12, 07, 14). Honest scope:
 
 ## Architecture
 
-SalesPilot uses **vertical slice** feature modules. Business domains own UI, DTOs, services, and repositories. Shared infrastructure (auth context, Prisma, env, API envelope) stays thin.
+I organized the codebase as **vertical slice** feature modules. Each domain owns its UI, DTOs, services, and repositories. Shared infrastructure (auth context, Prisma, env, API envelope) stays thin on purpose — I did not want a large shared “core” that every feature has to fight with.
 
 ```mermaid
 flowchart TB
@@ -118,9 +171,9 @@ Deep dive: [`docs/02-architecture.md`](docs/02-architecture.md), [`docs/03-folde
 
 ---
 
-## Multi-tenancy
+## How multi-tenancy works
 
-**Everything business-critical is organization-scoped.** Leads, forms, statuses, sources, custom fields, branding, activity, and notifications all hang off an `Organization`.
+I scoped every business-critical record to an organization.
 
 ```mermaid
 flowchart LR
@@ -136,30 +189,22 @@ flowchart LR
   Org --> Leads
 ```
 
-### How isolation works in code
-
 1. Authenticated requests resolve [`OrganizationContext`](src/modules/organizations/types/OrganizationContext.ts) (user + org + member + role + permissions)
 2. Services require permissions via `Permissions.*` **and** apply row visibility (e.g. lead access helpers)
 3. Repositories always filter by `organizationId` (and soft-delete where applicable)
-
-UI hiding is never the security boundary — **server checks are mandatory**.
-
-Docs: [`docs/23-organizations-multi-tenancy.md`](docs/23-organizations-multi-tenancy.md).
-
-### Current product vs schema
 
 | Today | Designed for |
 | --- | --- |
 | Session resolves the first active membership | User ↔ many `OrganizationMember` rows already in Prisma |
 | No org switcher in the shell | Switcher + “active org” preference without remodeling tenants |
 
+Docs: [`docs/23-organizations-multi-tenancy.md`](docs/23-organizations-multi-tenancy.md).
+
 ---
 
 ## Extension: multi-organization per user
 
-Moving from “one workspace in the UI” to “many workspaces per login” does **not** require a tenancy rewrite.
-
-**Concrete next steps**
+I deliberately stopped short of building an org switcher in the UI. Moving from “one workspace in the session” to “many workspaces per login” should not require remodeling tenancy — that was the point of the membership model.
 
 1. List memberships for the signed-in user (`organizationId`, role, org name/logo)
 2. Persist active org (session claim, cookie, or `OrganizationMember` preference field)
@@ -167,13 +212,13 @@ Moving from “one workspace in the UI” to “many workspaces per login” doe
 4. Invite / onboarding already create memberships — reuse for additional orgs
 5. Keep all queries keyed by the **active** `organizationId`
 
-This is the natural SaaS growth path (agencies, consultants, users in multiple companies).
+That is the usual next step for agencies or people who belong to more than one company.
 
 ---
 
 ## RBAC and role customization
 
-Permissions are **data-driven**:
+I kept permissions **data-driven** so role sets could change without rewriting business logic:
 
 - Canonical names in [`src/modules/permissions/constants/permissions.ts`](src/modules/permissions/constants/permissions.ts)
 - Roles per org with `RolePermission` join rows
@@ -216,6 +261,7 @@ Permissions are **data-driven**:
 ## Security and operations
 
 - **Server is source of truth** — Zod validation, Better Auth sessions, permission + visibility checks
+- **Auth surface** — email verification, password reset, Google OAuth with linking rules
 - **Env** validated via [`src/server/env.ts`](src/server/env.ts) (no silent missing secrets)
 - **API envelope** — consistent success/error shapes ([`docs/24-api-standards.md`](docs/24-api-standards.md))
 - **Uploads** — browser → S3 presigned PUT; app stores CloudFront URLs only; modules never talk to S3 ad hoc
@@ -235,7 +281,7 @@ Permissions are **data-driven**:
 | White-label / remove SalesPilot chrome | Documented as future |
 | Real-time websockets | Polling for notifications by design |
 
-Tracker: [`PROJECT_TRACKER.md`](PROJECT_TRACKER.md). Product docs under [`docs/`](docs/).
+I tracked deferred work in [`PROJECT_TRACKER.md`](PROJECT_TRACKER.md). Product docs live under [`docs/`](docs/).
 
 ---
 
@@ -265,7 +311,7 @@ App URL defaults to `http://localhost:3000` (`NEXT_PUBLIC_APP_URL` / `BETTER_AUT
 
 ## Project documentation
 
-This repo is **docs-driven**. Before changing a domain, start with:
+I kept the repo **docs-driven** so decisions stay written down. Before changing a domain, start with:
 
 1. [`docs/00-project-overview.md`](docs/00-project-overview.md)
 2. [`docs/02-architecture.md`](docs/02-architecture.md)
@@ -278,15 +324,20 @@ This repo is **docs-driven**. Before changing a domain, start with:
 
 ## Why this is a strong assignment / portfolio piece
 
-- **SaaS-shaped tenancy** from day one — not a single-tenant CRUD app with “org_id” bolted on later
-- **Real authorization** — permissions *and* row scope, tested helpers, no “hide the button” security
-- **Vertical slices** — features are findable and reviewable as units
-- **End-to-end product surface** — marketing, auth, CRM, public forms, dashboard, settings, branding
-- **Operational honesty** — deferred work is tracked; sample data was replaced when backends landed
-- **Engineering hygiene** — typed DTOs, Zod, Prisma, Biome, Vitest, env validation, incremental plans
+If you are reviewing this repo for a hiring process, this is what I hope you look at:
+
+- **Architecture** — vertical slices, service/repository split, DTOs instead of leaking Prisma models
+- **Multi-tenancy** — org-scoped data, memberships, and isolation checked on the server
+- **RBAC** — permission gates plus lead row visibility, not UI-only checks
+- **Better Auth integration** — email/password, verification, reset password, Google social login, account linking
+- **Modular design** — feature modules you can open and reason about in isolation
+- **Maintainability** — typed contracts, Zod, env validation, tests, documented deferrals
+- **Production-oriented decisions** — presigned uploads, Turnstile when configured, honest scope where I stopped short
+
+I shipped an end-to-end surface (marketing, auth, CRM, forms, dashboard, settings, branding) so the architecture has somewhere real to live. Feature count was never the main score I was optimizing for.
 
 ---
 
 ## License / assignment note
 
-Built as a take-home / internship-style engineering assignment for SalesPilot. Stack and architecture choices prioritize **clarity, security, and extendability** suitable for a commercial multi-tenant CRM.
+I built this as a take-home for DIGITAL HEROES job application. The objective was to demonstrate engineering ability — architecture, tenancy, auth, authorization, and how I organize a Next.js codebase. Feature completeness was intentionally secondary to software design.
