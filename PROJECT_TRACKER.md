@@ -11,9 +11,9 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 
 ## Current State
 
-- Active plan: none (14 complete). Next: `prompt/15-testing-quality-hardening.md`
+- Active plan: none (07 + 14 complete). Next: `prompt/15-testing-quality-hardening.md`
 - Current task: Open `prompt/15-testing-quality-hardening.md` and create `plan/15-testing-quality-hardening.md`.
-- Deferred: `07-dashboard-v1` (activity/notifications exist; dashboard widgets still sample until Plan 07 revisit); `13-storage-attachments` (full lead attachments deferred — minimal S3/CloudFront slice shipped under Plan 14 for logos/avatars)
+- Deferred: `13-storage-attachments` (full lead attachments deferred — minimal S3/CloudFront slice shipped under Plan 14 for logos/avatars)
 - Skipped: `10-search` (no global search in MVP; list/module filters already cover leads/forms)
 - Last updated: 2026-07-26
 
@@ -30,7 +30,7 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 | 04  | `[x]`  | Marketing Landing Page            | 03 App Shell & Navigation            | `plan/04-marketing-landing-page.md`          | `prompt/04-marketing-landing-page.md`          | 05 Members, Roles & Settings         |
 | 05  | `[x]`  | Members, Roles & Settings         | 03 App Shell & Navigation            | `plan/05-members-roles-settings.md`          | `prompt/05-members-roles-settings.md`          | 06 Leads Management                  |
 | 06  | `[x]`  | Leads Management                  | 05 Members, Roles & Settings         | `plan/06-leads-management.md`                | `prompt/06-leads-management.md`                | 07 Dashboard v1                      |
-| 07  | `[~]`  | Dashboard v1 (deferred)           | 06 Leads Management                  | `plan/07-dashboard-v1.md`                    | `prompt/07-dashboard-v1.md`                    | 08 Custom Fields                     |
+| 07  | `[x]`  | Dashboard v1                      | 06 Leads Management                  | `plan/07-dashboard-v1.md`                    | `prompt/07-dashboard-v1.md`                    | 08 Custom Fields                     |
 | 08  | `[x]`  | Custom Fields                     | 06 Leads Management                  | `plan/08-custom-fields.md`                   | `prompt/08-custom-fields.md`                   | 09 Lead Forms & Public Submissions   |
 | 09  | `[x]`  | Lead Forms & Public Submissions   | 08 Custom Fields                     | `plan/09-lead-forms-public-submissions.md`   | `prompt/09-lead-forms-public-submissions.md`   | 10 Search                            |
 | 10  | `[~]`  | Search (skipped)                  | 06 Leads Management                  | `plan/10-search.md`                          | `prompt/10-search.md`                          | 11 Activity Timeline                 |
@@ -116,5 +116,6 @@ Every new agent must:
 | 2026-07-25 | Auto        | Started joint Plan 11+12: lead activity timeline + in-app notifications (polling, no sockets).                                                                                                                                                                                                                                                                                                                             |
 | 2026-07-25 | Auto        | Plans 11+12 complete: lead activity module + detail timeline; assign/status notifications; header bell (replaced New Lead) → `/notifications` with polling badge; unit tests green. Next: `prompt/13-storage-attachments.md`.                                                                                                                                                                                              |
 | 2026-07-26 | Auto        | Skipped full Plan 13 (lead attachments). Plan 14 complete: minimal S3 presign + CloudFront URLs; org logo (settings/header/public forms); `FormBrandingDisplay`; user profile photo/phone/gender/password/Google link-unlink. Next: `prompt/15-testing-quality-hardening.md`.                                                                                                                                             |
+| 2026-07-26 | Auto        | Plan 07 complete: live dashboard (role-scoped counts, pipeline, assigned, activity, notifications); date presets week/month/year/custom; shared Calendar picker; Leads filter dates updated. Next remains Testing (15).                                                                                                                                                                                                      |
 
 

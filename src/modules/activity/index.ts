@@ -10,6 +10,7 @@ export {
 export {
   createActivity,
   listActivitiesByEntity,
+  listRecentLeadActivities,
 } from "@/modules/activity/repository/activity.repository";
 export {
   listLeadTimeline,

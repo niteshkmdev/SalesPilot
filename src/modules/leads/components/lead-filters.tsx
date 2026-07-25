@@ -3,9 +3,12 @@
 import { ListFilter } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import {
+  DateRangePicker,
+  type DateRangeValue,
+} from "@/components/date-range-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -29,6 +32,7 @@ import type {
   LeadSourceDto,
   LeadStatusDto,
 } from "@/modules/leads";
+import { DateRangePreset } from "@/shared/dates";
 
 interface LeadFiltersProps {
   statuses: LeadStatusDto[];
@@ -116,6 +120,16 @@ export function LeadFilters({
   const [duplicateValue, setDuplicateValue] = useState(
     isDuplicate === undefined ? "all" : isDuplicate ? "true" : "false",
   );
+  const [createdRange, setCreatedRange] = useState<DateRangeValue>({
+    preset: DateRangePreset.CUSTOM,
+    startDate: createdFrom,
+    endDate: createdTo,
+  });
+  const [updatedRange, setUpdatedRange] = useState<DateRangeValue>({
+    preset: DateRangePreset.CUSTOM,
+    startDate: updatedFrom,
+    endDate: updatedTo,
+  });
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -284,41 +298,29 @@ export function LeadFilters({
                 </Select>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="createdFrom">Created from</Label>
-                  <Input
-                    id="createdFrom"
-                    name="createdFrom"
-                    type="date"
-                    defaultValue={createdFrom}
+                  <Label htmlFor="created-range">Created range</Label>
+                  <DateRangePicker
+                    id="created-range"
+                    align="start"
+                    startName="createdFrom"
+                    endName="createdTo"
+                    placeholder="Any created dates"
+                    value={createdRange}
+                    onChange={setCreatedRange}
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="createdTo">Created to</Label>
-                  <Input
-                    id="createdTo"
-                    name="createdTo"
-                    type="date"
-                    defaultValue={createdTo}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="updatedFrom">Updated from</Label>
-                  <Input
-                    id="updatedFrom"
-                    name="updatedFrom"
-                    type="date"
-                    defaultValue={updatedFrom}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="updatedTo">Updated to</Label>
-                  <Input
-                    id="updatedTo"
-                    name="updatedTo"
-                    type="date"
-                    defaultValue={updatedTo}
+                  <Label htmlFor="updated-range">Updated range</Label>
+                  <DateRangePicker
+                    id="updated-range"
+                    align="start"
+                    startName="updatedFrom"
+                    endName="updatedTo"
+                    placeholder="Any updated dates"
+                    value={updatedRange}
+                    onChange={setUpdatedRange}
                   />
                 </div>
               </div>

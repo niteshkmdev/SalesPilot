@@ -246,6 +246,38 @@ export async function countLeads(
   });
 }
 
+export async function groupLeadsByStatus(
+  db: DatabaseClient,
+  organizationId: string,
+  where?: Prisma.LeadWhereInput,
+) {
+  return db.lead.groupBy({
+    by: ["statusId"],
+    where: {
+      organizationId,
+      AND: [notDeletedWhere(), where ?? {}],
+    },
+    _count: { _all: true },
+  });
+}
+
+export async function listLeadIds(
+  db: DatabaseClient,
+  organizationId: string,
+  where?: Prisma.LeadWhereInput,
+  take = 500,
+) {
+  const rows = await db.lead.findMany({
+    where: {
+      organizationId,
+      AND: [notDeletedWhere(), where ?? {}],
+    },
+    select: { id: true },
+    take,
+  });
+  return rows.map((row) => row.id);
+}
+
 export async function softDeleteLead(
   db: DatabaseClient,
   leadId: string,

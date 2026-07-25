@@ -43,6 +43,35 @@ export async function listActivitiesByEntity(
   });
 }
 
+export async function listRecentLeadActivities(
+  db: DatabaseClient,
+  options: {
+    organizationId: string;
+    leadIds?: string[];
+    createdFrom?: Date;
+    createdTo?: Date;
+    take?: number;
+  },
+) {
+  const createdAt: Prisma.DateTimeFilter = {};
+  if (options.createdFrom) createdAt.gte = options.createdFrom;
+  if (options.createdTo) createdAt.lte = options.createdTo;
+
+  return db.activity.findMany({
+    where: {
+      organizationId: options.organizationId,
+      entityType: "lead",
+      ...(options.leadIds ? { entityId: { in: options.leadIds } } : {}),
+      ...(Object.keys(createdAt).length > 0 ? { createdAt } : {}),
+    },
+    include: {
+      actor: { include: { user: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: options.take ?? 10,
+  });
+}
+
 export type ActivityWithActor = Prisma.ActivityGetPayload<{
   include: { actor: { include: { user: true } } };
 }>;

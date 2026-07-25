@@ -1,8 +1,40 @@
 # Plan 07: Dashboard v1
 
-## Status
+## Objective
 
-- Overall status: `[~]` **Intentionally deferred**
-- Reason: Full dashboard needs Activity (Plan 11) and Notifications (Plan 12). Lead-backed metrics alone would leave half the UI empty. Keep sample-data honesty on `/dashboard`.
-- Resume after: Plan 11 (and ideally 12), or a thin lead-metrics-only pass if prioritized earlier.
-- Active work moved to joint Plans 08 + 09.
+Live, role-scoped dashboard metrics with week/month/year/custom date ranges, wired into the existing dashboard layout. Shared shadcn Calendar date-range picker also used in Leads filters.
+
+## Status Legend
+
+- `[ ]` Not started
+- `[~]` In progress
+- `[x]` Complete
+- `[!]` Blocked
+
+## Current Status
+
+- Overall status: `[x]` Complete
+- Current task: Closed — live dashboard + shared date picker
+- Dependency: Plans 06 (leads), 11 (activity), 12 (notifications)
+- Next: `prompt/15-testing-quality-hardening.md` (or Storage revisit)
+
+## Assumptions / deviations
+
+1. Date presets: This week / This month / This year / Custom (default this month) — not the longer docs list.
+2. Assigned Leads “Value” column → **Updated** (no deal-amount field on Lead).
+3. Aggregates use `createdAt` in range + `buildLeadVisibilityWhere`.
+4. Aggregated service + `GET /api/v1/dashboard`; RSC page loads service directly.
+
+## Task Checklist
+
+- `[x]` Shared date helpers + shadcn Calendar + DateRangePicker
+- `[x]` Dashboard DTOs/service/aggregates + API
+- `[x]` Wire `/dashboard` (remove sample data)
+- `[x]` Leads filter sheet uses shared picker
+- `[x]` Unit tests + tracker/AGENTS
+
+## Out of scope
+
+- Extra docs presets (Today / Last 7 / Last 30)
+- Deal value / source chart
+- Widget layout personalization

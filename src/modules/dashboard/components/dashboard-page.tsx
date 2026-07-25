@@ -1,11 +1,15 @@
+"use client";
+
+import { formatDistanceToNow } from "date-fns";
 import {
   BellIcon,
-  CalendarDaysIcon,
   FileTextIcon,
   TrendingUpIcon,
   UserPlusIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { DateRangePicker } from "@/components/date-range-picker";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,94 +30,79 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { DashboardOverviewDto } from "@/modules/dashboard";
+import { DateRangePreset } from "@/shared/dates";
 
-const metrics = [
-  { label: "Total Leads", value: "248", change: "+18 this month" },
-  { label: "Qualified Leads", value: "84", change: "34% of pipeline" },
-  { label: "Won Leads", value: "31", change: "12.5% conversion" },
-  { label: "Conversion Rate", value: "12.5%", change: "+2.1 from last month" },
-];
+interface DashboardPageProps {
+  data: DashboardOverviewDto;
+}
 
-const pipeline = [
-  { stage: "New", value: 92, width: "86%" },
-  { stage: "Contacted", value: 61, width: "64%" },
-  { stage: "Qualified", value: 42, width: "48%" },
-  { stage: "Proposal", value: 22, width: "28%" },
-  { stage: "Won", value: 31, width: "36%" },
-];
+export function DashboardPage({ data }: DashboardPageProps) {
+  const router = useRouter();
+  const pathname = usePathname();
 
-const leads = [
-  {
-    company: "Northstar Labs",
-    contact: "Avery Brooks",
-    status: "Qualified",
-    owner: "MK",
-    value: "$18,400",
-  },
-  {
-    company: "Brightline Studio",
-    contact: "Rina Patel",
-    status: "Contacted",
-    owner: "DL",
-    value: "$9,200",
-  },
-  {
-    company: "Orbit Foods",
-    contact: "Jon Bell",
-    status: "New",
-    owner: "AS",
-    value: "$6,750",
-  },
-];
+  const onRangeChange = (next: {
+    preset: string;
+    startDate: string;
+    endDate: string;
+  }) => {
+    const params = new URLSearchParams();
+    params.set("preset", next.preset);
+    params.set("startDate", next.startDate);
+    params.set("endDate", next.endDate);
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
-const activity = [
-  "Maya qualified Northstar Labs",
-  "Drew assigned Brightline Studio",
-  "New website form submitted by Orbit Foods",
-  "Avery Brooks added a follow-up note",
-];
-
-const notifications = [
-  "3 leads need follow-up today",
-  "Lead form conversion is up this week",
-  "2 invitations are still pending",
-];
-
-export function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="flex flex-col gap-2">
-          <Badge variant="secondary" className="w-fit">
-            <CalendarDaysIcon data-icon="inline-start" />
-            Sample data
-          </Badge>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              Preview of the overview layout. Metrics below are sample data
-              until the live dashboard ships.
+              Overview of leads you can access for{" "}
+              {data.range.label.toLowerCase()}.
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" asChild>
-            <Link href="/settings/members">
-              <UserPlusIcon data-icon="inline-start" />
-              Invite Member
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/leads/new">
-              <FileTextIcon data-icon="inline-start" />
-              New Lead
-            </Link>
-          </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <DateRangePicker
+            showPresets
+            align="end"
+            value={{
+              preset:
+                data.range.preset === DateRangePreset.THIS_WEEK ||
+                data.range.preset === DateRangePreset.THIS_MONTH ||
+                data.range.preset === DateRangePreset.THIS_YEAR ||
+                data.range.preset === DateRangePreset.CUSTOM
+                  ? data.range.preset
+                  : DateRangePreset.THIS_MONTH,
+              startDate: data.range.startDate,
+              endDate: data.range.endDate,
+            }}
+            onChange={onRangeChange}
+          />
+          {data.capabilities.canInviteMember ? (
+            <Button variant="outline" asChild>
+              <Link href="/settings/members">
+                <UserPlusIcon data-icon="inline-start" />
+                Invite Member
+              </Link>
+            </Button>
+          ) : null}
+          {data.capabilities.canCreateLead ? (
+            <Button variant="outline" asChild>
+              <Link href="/leads/new">
+                <FileTextIcon data-icon="inline-start" />
+                New Lead
+              </Link>
+            </Button>
+          ) : null}
         </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => (
+        {data.metrics.map((metric) => (
           <Card key={metric.label}>
             <CardHeader>
               <CardTitle>{metric.label}</CardTitle>
@@ -131,26 +120,32 @@ export function DashboardPage() {
           <CardHeader>
             <CardTitle>Pipeline</CardTitle>
             <CardDescription>
-              Current lead distribution by stage.
+              Lead distribution by stage in the selected range.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            {pipeline.map((stage) => (
-              <div className="flex items-center gap-4" key={stage.stage}>
-                <span className="w-24 text-sm text-muted-foreground">
-                  {stage.stage}
-                </span>
-                <div className="h-3 flex-1 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-primary"
-                    style={{ width: stage.width }}
-                  />
+            {data.pipeline.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No pipeline statuses configured.
+              </p>
+            ) : (
+              data.pipeline.map((stage) => (
+                <div className="flex items-center gap-4" key={stage.stage}>
+                  <span className="w-24 text-sm text-muted-foreground">
+                    {stage.stage}
+                  </span>
+                  <div className="h-3 flex-1 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: stage.width }}
+                    />
+                  </div>
+                  <span className="w-8 text-right text-sm font-medium">
+                    {stage.value}
+                  </span>
                 </div>
-                <span className="w-8 text-right text-sm font-medium">
-                  {stage.value}
-                </span>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -158,45 +153,56 @@ export function DashboardPage() {
           <CardHeader>
             <CardTitle>Assigned Leads</CardTitle>
             <CardDescription>
-              Highest-priority leads needing movement.
+              Recently updated leads in this range.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead className="text-right">Value</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {leads.map((lead) => (
-                  <TableRow key={lead.company}>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{lead.company}</span>
-                        <span className="text-muted-foreground">
-                          {lead.contact}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{lead.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Avatar size="sm">
-                        <AvatarFallback>{lead.owner}</AvatarFallback>
-                      </Avatar>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {lead.value}
-                    </TableCell>
+            {data.assignedLeads.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No leads in this date range.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Owner</TableHead>
+                    <TableHead className="text-right">Updated</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {data.assignedLeads.map((lead) => (
+                    <TableRow key={lead.id}>
+                      <TableCell>
+                        <Link
+                          href={`/leads/${lead.id}`}
+                          className="flex flex-col hover:underline"
+                        >
+                          <span className="font-medium">{lead.company}</span>
+                          <span className="text-muted-foreground">
+                            {lead.contact}
+                          </span>
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{lead.status}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Avatar size="sm">
+                          <AvatarFallback>{lead.owner}</AvatarFallback>
+                        </Avatar>
+                      </TableCell>
+                      <TableCell className="text-right text-sm text-muted-foreground">
+                        {formatDistanceToNow(new Date(lead.updatedAt), {
+                          addSuffix: true,
+                        })}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </section>
@@ -206,39 +212,58 @@ export function DashboardPage() {
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
             <CardDescription>
-              The latest movement across leads and forms.
+              Latest movement across leads you can see.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            {activity.map((item) => (
-              <div className="flex items-start gap-3" key={item}>
-                <TrendingUpIcon className="mt-0.5 size-4 text-muted-foreground" />
-                <p className="text-sm">{item}</p>
-              </div>
-            ))}
+            {data.activity.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No activity in this date range.
+              </p>
+            ) : (
+              data.activity.map((item) => (
+                <div className="flex items-start gap-3" key={item.id}>
+                  <TrendingUpIcon className="mt-0.5 size-4 text-muted-foreground" />
+                  <p className="text-sm">{item.summary}</p>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
-            <CardDescription>
-              Signals that help the team act today.
-            </CardDescription>
+            <CardDescription>Signals that help you act today.</CardDescription>
             <CardAction>
-              <Badge variant="outline">3 unread</Badge>
+              <Badge variant="outline" asChild>
+                <Link href="/notifications">
+                  {data.unreadNotificationCount} unread
+                </Link>
+              </Badge>
             </CardAction>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            {notifications.map((item, index) => (
-              <div className="flex flex-col gap-3" key={item}>
-                <div className="flex items-start gap-3">
-                  <BellIcon className="mt-0.5 size-4 text-muted-foreground" />
-                  <p className="text-sm">{item}</p>
+            {data.notifications.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No notifications yet.
+              </p>
+            ) : (
+              data.notifications.map((item, index) => (
+                <div className="flex flex-col gap-3" key={item.id}>
+                  <div className="flex items-start gap-3">
+                    <BellIcon className="mt-0.5 size-4 text-muted-foreground" />
+                    <div className="flex flex-col gap-0.5">
+                      <p className="text-sm font-medium">{item.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.message}
+                      </p>
+                    </div>
+                  </div>
+                  {index < data.notifications.length - 1 ? <Separator /> : null}
                 </div>
-                {index < notifications.length - 1 ? <Separator /> : null}
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
       </section>
