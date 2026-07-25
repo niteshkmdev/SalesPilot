@@ -163,6 +163,15 @@ export function OnboardingPage({
             {isLoading ? "Saving..." : "Continue to Dashboard"}
           </Button>
         </form>
+        <Button
+          className="w-full"
+          type="button"
+          variant="outline"
+          onClick={handleSignOut}
+          disabled={isLoading || isSigningOut}
+        >
+          {isSigningOut ? "Signing out..." : "Log out"}
+        </Button>
       </CardContent>
     </Card>
   );

@@ -117,7 +117,7 @@ function AccountMenu({
           type="button"
           className={cn(
             "flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-left transition-colors hover:bg-muted",
-            isActive && "bg-muted",
+            isActive && "bg-primary/10",
           )}
         >
           <Avatar className="size-8 shrink-0">
@@ -195,8 +195,10 @@ function SidebarItem({ item, isActive }: { item: NavItem; isActive: boolean }) {
     <Link
       href={item.href}
       className={cn(
-        "flex h-9 w-full shrink-0 items-center gap-3 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-        isActive && "bg-muted text-foreground font-medium",
+        "flex h-9 w-full shrink-0 items-center gap-3 rounded-md px-3 text-sm transition-colors",
+        isActive
+          ? "bg-primary font-medium text-primary-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
       <Icon className="size-4 shrink-0" />

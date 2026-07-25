@@ -99,7 +99,7 @@ export function ForgotPasswordPage() {
         <div className="text-center text-sm text-muted-foreground">
           Remembered your password?{" "}
           <Link href="/login" className="text-primary hover:underline">
-            Sign in
+            Back to login
           </Link>
         </div>
       </CardFooter>

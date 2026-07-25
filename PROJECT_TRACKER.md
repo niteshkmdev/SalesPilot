@@ -12,7 +12,7 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 ## Current State
 
 - Active plan: `06-leads-management`
-- Current task: Continue lead CRUD; assignment UI still open. Plan 02 UI-first close-out complete.
+- Current task: Continue lead CRUD; assignment UI still open. Plan 03 app shell close-out complete.
 - Next prompt after active plan: `prompt/07-dashboard-v1.md`
 - Last updated: 2026-07-25
 
@@ -83,3 +83,6 @@ Every new agent must:
 | 2026-07-25 | Auto | Plan 01 re-audit complete: env via `env.ts`, domain OrganizationContext + roleName, role/member repos split, Better Auth hook sole provisioner, AppShell/onboarding load-only, unverified → `/verify`. Validation green. Deferred to Plan 06: leads under `src/server/*`, role-string authz, ad-hoc action envelopes. Restored Plan 06 as active. |
 | 2026-07-25 | Auto | Re-opened Plan 02 for UI-first close-out (landing copy, forgot-password, verify typing, dashboard honesty). Temporarily paused Plan 06. |
 | 2026-07-25 | Auto | Plan 02 close-out complete: landing FAQ honesty, `/forgot-password` + `/reset-password`, typed verify resend, dashboard sample-data + New Lead CTA. Carve-outs: invite/org edit → 05; assignment → 06; live dashboard → 07; forms → 09; notifications → 12. Restored Plan 06 as active. |
+| 2026-07-25 | Auto | Re-opened Plan 03 for app shell close-out (auth chrome, nav hygiene, loading/error). Temporarily paused Plan 06. |
+| 2026-07-25 | Auto | Plan 03 close-out complete: route-aware AuthChrome, Members top-level only, primary active nav, honest search copy, dashboard loading/error, nav unit tests, login forgot-password below field. Restored Plan 06 as active. |
+| 2026-07-25 | Auto | Plan 02 follow-up: public `/terms` and `/privacy` pages (draft MVP copy) for Google OAuth verification; consent links on signup/login. Active plan remains `06-leads-management`. |

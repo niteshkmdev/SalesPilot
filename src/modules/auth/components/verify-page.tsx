@@ -76,7 +76,7 @@ function VerifyEmailContent() {
         <div className="text-center text-sm text-muted-foreground">
           Verified your email?{" "}
           <Link href="/login" className="text-primary hover:underline">
-            Go to Login
+            Back to login
           </Link>
         </div>
       </CardFooter>

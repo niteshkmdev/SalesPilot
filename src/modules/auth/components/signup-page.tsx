@@ -62,7 +62,7 @@ export function SignupPage({ isInvite = false }: SignupPageProps) {
       } else {
         toast.success("Account created successfully!");
         // Redirect to the verification page
-        router.push("/verify?email=" + encodeURIComponent(email));
+        router.push(`/verify?email=${encodeURIComponent(email)}`);
       }
     } catch (_err) {
       toast.error("An unexpected error occurred");
@@ -130,6 +130,17 @@ export function SignupPage({ isInvite = false }: SignupPageProps) {
             )}
             Continue with Google
           </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            By continuing, you agree to our{" "}
+            <Link href="/terms" className="text-primary hover:underline">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-primary hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -199,10 +210,21 @@ export function SignupPage({ isInvite = false }: SignupPageProps) {
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              By creating an account, you agree to our{" "}
+              <Link href="/terms" className="text-primary hover:underline">
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="text-primary hover:underline">
+                Privacy Policy
+              </Link>
+              .
+            </p>
             <Button
               type="button"
               variant="ghost"
-              className="w-full mt-2"
+              className="mt-2 w-full"
               onClick={() => setStep(1)}
               disabled={isLoading}
             >

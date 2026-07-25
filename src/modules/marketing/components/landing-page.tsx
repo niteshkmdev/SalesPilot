@@ -22,6 +22,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  MarketingSiteFooter,
+  MarketingSiteHeader,
+} from "@/modules/marketing/components/marketing-site-chrome";
 
 const features = [
   {
@@ -93,52 +97,7 @@ interface LandingPageProps {
 export function LandingPage({ isAuthenticated = false }: LandingPageProps) {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 border-b bg-background/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              S
-            </span>
-            SalesPilot
-          </Link>
-          <nav
-            aria-label="Primary navigation"
-            className="hidden items-center gap-6 text-sm text-muted-foreground md:flex"
-          >
-            <Link href="#features" className="hover:text-foreground">
-              Features
-            </Link>
-            <Link href="#pricing" className="hover:text-foreground">
-              Pricing
-            </Link>
-            <Link href="#faq" className="hover:text-foreground">
-              FAQ
-            </Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            {isAuthenticated ? (
-              <Button asChild>
-                <Link href="/dashboard">
-                  Go to Dashboard
-                  <ArrowRightIcon data-icon="inline-end" />
-                </Link>
-              </Button>
-            ) : (
-              <>
-                <Button asChild variant="ghost">
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/signup">
-                    Get Started
-                    <ArrowRightIcon data-icon="inline-end" />
-                  </Link>
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+      <MarketingSiteHeader isAuthenticated={isAuthenticated} />
 
       <section className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-24 lg:grid lg:grid-cols-[1fr_0.9fr] lg:items-center">
         <div className="flex flex-col gap-8">
@@ -326,19 +285,7 @@ export function LandingPage({ isAuthenticated = false }: LandingPageProps) {
         </div>
       </section>
 
-      <footer className="border-t">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-          <p>© 2026 SalesPilot. Built for focused sales teams.</p>
-          <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-foreground">
-              Privacy
-            </Link>
-            <Link href="/terms" className="hover:text-foreground">
-              Terms
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <MarketingSiteFooter />
     </main>
   );
 }

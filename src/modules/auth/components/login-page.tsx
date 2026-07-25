@@ -126,15 +126,7 @@ export function LoginPage() {
             />
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link
-                href="/forgot-password"
-                className="text-sm text-muted-foreground hover:text-primary"
-              >
-                Forgot password?
-              </Link>
-            </div>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
@@ -143,6 +135,14 @@ export function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading || isGoogleLoading}
             />
+            <div className="flex justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-muted-foreground hover:text-primary"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
           <Button
             className="w-full"
@@ -160,6 +160,18 @@ export function LoginPage() {
             Sign up
           </Link>
         </div>
+        <p className="text-center text-xs text-muted-foreground">
+          <Link href="/terms" className="hover:text-foreground hover:underline">
+            Terms
+          </Link>
+          {" · "}
+          <Link
+            href="/privacy"
+            className="hover:text-foreground hover:underline"
+          >
+            Privacy
+          </Link>
+        </p>
       </CardFooter>
     </Card>
   );

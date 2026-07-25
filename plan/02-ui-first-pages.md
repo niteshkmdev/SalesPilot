@@ -48,6 +48,7 @@ Build the visible SalesPilot product experience first: marketing landing page, d
 - `[x]` Notifications + public lead forms — carved out to Plans 12 and 09.
 - `[x]` Update `PROJECT_TRACKER.md` after each meaningful task.
 - `[x]` Mark this plan complete in `PROJECT_TRACKER.md`.
+- `[x]` Public `/terms` and `/privacy` pages for Google OAuth verification (draft MVP copy).
 
 ## Carve-outs (owned elsewhere)
 
@@ -82,6 +83,7 @@ Build the visible SalesPilot product experience first: marketing landing page, d
 | 2026-07-25 | Antigravity | Built static Login and Signup UI pages. Added logic for conditional org creation in signup UI based on invite query param. |
 | 2026-07-25 | Auto | Re-opened for close-out re-audit: plan was stale; shell/settings/leads already exist under later plans. Scope = polish leftovers only. |
 | 2026-07-25 | Auto | Close-out complete: FAQ copy, `/forgot-password` + `/reset-password`, typed verify resend, dashboard sample-data honesty. Lint/test/build green. |
+| 2026-07-25 | Auto | Added public `/terms` and `/privacy` with draft MVP legal copy for Google OAuth verification; signup/login consent links. |
 
 ## Changed Files Log
 
@@ -93,6 +95,7 @@ Build the visible SalesPilot product experience first: marketing landing page, d
 | 2026-07-25 | `src/components/ui/button.tsx`, `src/components/ui/badge.tsx` | Added `"use client"` because Radix Slot uses React context and cannot be imported through Server Components without a client boundary. |
 | 2026-07-25 | `src/app/(auth)/login/page.tsx`, `src/app/(auth)/signup/page.tsx`, `src/modules/auth/components/login-page.tsx`, `src/modules/auth/components/signup-page.tsx`, `src/app/(auth)/layout.tsx` | Added static Login and Signup routes and components. |
 | 2026-07-25 | `landing-page.tsx`, `forgot-password*`, `reset-password*`, `verify-page.tsx`, `login-page.tsx`, `dashboard-page.tsx`, trackers | UI-first close-out polish. |
+| 2026-07-25 | `(marketing)/terms`, `(marketing)/privacy`, `legal.ts`, signup/login consent links | Terms & Privacy for OAuth verification. |
 
 ## Blockers
 

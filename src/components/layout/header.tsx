@@ -54,7 +54,7 @@ export function Header({ role, user, organization }: HeaderProps) {
             className="flex w-full max-w-md items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
           >
             <SearchIcon className="size-4 shrink-0" />
-            <span className="truncate">Search leads, forms, members...</span>
+            <span className="truncate">Search leads…</span>
           </Link>
         </div>
 

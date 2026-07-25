@@ -20,6 +20,7 @@ export interface NavItem {
  * Live navigation only includes routes that exist today.
  * Forms, Branding, and Notifications are deferred until their plans ship.
  * Settings is opened via a sidebar popper (see settingsNavItems), not a top-level link.
+ * Members is top-level only (not duplicated in settings).
  */
 export const navigationItems: NavItem[] = [
   {
@@ -56,36 +57,21 @@ export const settingsNavItems: NavItem[] = [
     icon: Building2,
     roles: ["Owner", "Admin"],
   },
-  {
-    title: "Members",
-    href: "/settings/members",
-    icon: UsersRound,
-    roles: ["Owner", "Admin"],
-  },
 ];
 
-const settingsAccessRoles: Role[] = ["Owner", "Admin"];
-
-export function canAccessSettings(role: string): boolean {
-  return settingsAccessRoles.includes(
-    (["Owner", "Admin", "Manager", "Member"].includes(role)
-      ? role
-      : "Member") as Role,
-  );
+function matchRole(role: string): Role {
+  return (
+    ["Owner", "Admin", "Manager", "Member"].includes(role) ? role : "Member"
+  ) as Role;
 }
 
 export function getNavigationForRole(role: string): NavItem[] {
-  // If role is undefined or unrecognized, default to Member visibility.
-  const matchedRole = (
-    ["Owner", "Admin", "Manager", "Member"].includes(role) ? role : "Member"
-  ) as Role;
+  const matchedRole = matchRole(role);
   return navigationItems.filter((item) => item.roles.includes(matchedRole));
 }
 
 export function getSettingsNavForRole(role: string): NavItem[] {
-  const matchedRole = (
-    ["Owner", "Admin", "Manager", "Member"].includes(role) ? role : "Member"
-  ) as Role;
+  const matchedRole = matchRole(role);
   return settingsNavItems.filter((item) => item.roles.includes(matchedRole));
 }
 
