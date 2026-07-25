@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,15 @@ import {
 } from "@/components/ui/table";
 import { auth } from "@/server/auth/auth";
 import { prisma } from "@/server/db/prisma";
+
+const memberListInclude = {
+  user: true,
+  role: true,
+} satisfies Prisma.OrganizationMemberInclude;
+
+type OrganizationMemberRow = Prisma.OrganizationMemberGetPayload<{
+  include: typeof memberListInclude;
+}>;
 
 export default async function MembersPage() {
   const session = await auth.api.getSession({
@@ -36,16 +46,14 @@ export default async function MembersPage() {
     return <div>You do not have permission to view this page.</div>;
   }
 
-  const members = await prisma.organizationMember.findMany({
-    where: { organizationId: currentMember.organizationId },
-    include: {
-      user: true,
-      role: true,
-    },
-    orderBy: {
-      joinedAt: "asc",
-    },
-  });
+  const members: OrganizationMemberRow[] =
+    await prisma.organizationMember.findMany({
+      where: { organizationId: currentMember.organizationId },
+      include: memberListInclude,
+      orderBy: {
+        joinedAt: "asc",
+      },
+    });
 
   return (
     <div className="space-y-6">
