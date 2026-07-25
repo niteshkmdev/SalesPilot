@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { SalesPilotBrandLink } from "@/components/brand/salespilot-mark";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -77,16 +78,11 @@ export function MobileNav({ role, user }: MobileNavProps) {
           Access links to different parts of the application.
         </SheetDescription>
 
-        <Link
+        <SalesPilotBrandLink
           href="/dashboard"
-          className="mb-6 flex items-center gap-2 text-lg font-semibold"
+          className="mb-6 text-lg"
           onClick={() => setOpen(false)}
-        >
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm">
-            S
-          </span>
-          <span>SalesPilot</span>
-        </Link>
+        />
 
         <nav className="grid flex-1 content-start gap-1 text-sm font-medium">
           {items.map((item) => {

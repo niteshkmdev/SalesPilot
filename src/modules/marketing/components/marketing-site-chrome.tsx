@@ -1,5 +1,6 @@
 import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
+import { SalesPilotBrandLink } from "@/components/brand/salespilot-mark";
 import { Button } from "@/components/ui/button";
 
 interface MarketingSiteHeaderProps {
@@ -12,12 +13,7 @@ export function MarketingSiteHeader({
   return (
     <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            S
-          </span>
-          SalesPilot
-        </Link>
+        <SalesPilotBrandLink href="/" />
         <nav
           aria-label="Primary navigation"
           className="hidden items-center gap-6 text-sm text-muted-foreground md:flex"

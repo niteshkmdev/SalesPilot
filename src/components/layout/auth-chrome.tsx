@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SalesPilotBrandLink } from "@/components/brand/salespilot-mark";
 import { authClient } from "@/lib/auth-client";
 
 type EscapeAction =
@@ -46,12 +47,7 @@ export function AuthChrome() {
 
   return (
     <header className="flex items-center justify-between px-6 py-4">
-      <Link href="/" className="flex items-center gap-2 font-semibold">
-        <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm text-primary-foreground">
-          S
-        </span>
-        SalesPilot
-      </Link>
+      <SalesPilotBrandLink href="/" />
       {escapeAction.kind === "link" ? (
         <Link
           href={escapeAction.href}

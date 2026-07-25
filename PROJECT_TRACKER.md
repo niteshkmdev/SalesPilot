@@ -12,7 +12,7 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 ## Current State
 
 - Active plan: `06-leads-management`
-- Current task: Continue lead CRUD; assignment UI still open. Plan 03 app shell close-out complete.
+- Current task: Continue lead CRUD; assignment UI still open. Brand mark lockup polish shipped.
 - Next prompt after active plan: `prompt/07-dashboard-v1.md`
 - Last updated: 2026-07-25
 
@@ -86,3 +86,5 @@ Every new agent must:
 | 2026-07-25 | Auto | Re-opened Plan 03 for app shell close-out (auth chrome, nav hygiene, loading/error). Temporarily paused Plan 06. |
 | 2026-07-25 | Auto | Plan 03 close-out complete: route-aware AuthChrome, Members top-level only, primary active nav, honest search copy, dashboard loading/error, nav unit tests, login forgot-password below field. Restored Plan 06 as active. |
 | 2026-07-25 | Auto | Plan 02 follow-up: public `/terms` and `/privacy` pages (draft MVP copy) for Google OAuth verification; consent links on signup/login. Active plan remains `06-leads-management`. |
+| 2026-07-25 | Auto | Brand/PWA/social meta: SalesPilotMark SVG logo in marketing/auth/shell, favicon+PWA icons, `manifest.ts` (`start_url` `/dashboard`), minimal SW, OG 630 + Twitter 628 Hero images. Active plan remains `06-leads-management`. |
+| 2026-07-25 | Auto | Brand mark polish: in-app SVG = black squircle + white S (transparent outside); favicon/PWA = same mark on white canvas; larger `SalesPilotBrandLink` lockup with `select-none`. Active plan remains `06-leads-management`. |

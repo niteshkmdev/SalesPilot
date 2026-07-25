@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { SalesPilotBrandLink } from "@/components/brand/salespilot-mark";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -49,15 +50,7 @@ export function Sidebar({ role, user }: SidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[280px] flex-col border-r bg-background lg:flex">
       <div className="flex h-full flex-col gap-4 px-3 pt-4 pb-2">
-        <Link
-          href="/dashboard"
-          className="flex h-9 shrink-0 items-center gap-2 px-3 font-semibold"
-        >
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            S
-          </span>
-          SalesPilot
-        </Link>
+        <SalesPilotBrandLink href="/dashboard" className="h-10 shrink-0 px-3" />
 
         <nav
           aria-label="Main navigation"
