@@ -8,23 +8,21 @@ import {
 } from "@/lib/navigation";
 
 describe("navigation helpers", () => {
-  it("returns full main nav for Owner and Admin", () => {
+  it("returns Dashboard, Leads, and Forms for Owner/Admin/Manager", () => {
     expect(getNavigationForRole("Owner").map((i) => i.title)).toEqual([
       "Dashboard",
       "Leads",
-      "Members",
+      "Forms",
     ]);
     expect(getNavigationForRole("Admin").map((i) => i.title)).toEqual([
       "Dashboard",
       "Leads",
-      "Members",
+      "Forms",
     ]);
-  });
-
-  it("hides Members from Manager and Member main nav", () => {
     expect(getNavigationForRole("Manager").map((i) => i.title)).toEqual([
       "Dashboard",
       "Leads",
+      "Forms",
     ]);
     expect(getNavigationForRole("Member").map((i) => i.title)).toEqual([
       "Dashboard",
@@ -39,34 +37,29 @@ describe("navigation helpers", () => {
     ]);
   });
 
-  it("settings nav is Profile + Organization only (no Members dupe)", () => {
+  it("puts Members and Custom Fields in settings nav for Owner/Admin", () => {
     expect(settingsNavItems.map((i) => i.title)).toEqual([
       "Profile",
       "Organization",
+      "Members",
+      "Custom Fields",
     ]);
     expect(getSettingsNavForRole("Owner").map((i) => i.title)).toEqual([
       "Profile",
       "Organization",
+      "Members",
+      "Custom Fields",
     ]);
     expect(getSettingsNavForRole("Member").map((i) => i.title)).toEqual([
       "Profile",
     ]);
-  });
-
-  it("keeps Members as a top-level nav item only", () => {
     expect(navigationItems.some((i) => i.href === "/settings/members")).toBe(
-      true,
-    );
-    expect(settingsNavItems.some((i) => i.href === "/settings/members")).toBe(
       false,
     );
   });
 
   it("marks the most specific nav href as active", () => {
     const items = getNavigationForRole("Owner");
-    expect(
-      isNavItemActive("/settings/members", "/settings/members", items),
-    ).toBe(true);
     expect(isNavItemActive("/leads/new", "/leads", items)).toBe(true);
     expect(isNavItemActive("/dashboard", "/leads", items)).toBe(false);
   });

@@ -20,22 +20,32 @@ import { authClient } from "@/lib/auth-client";
 
 interface SignupPageProps {
   isInvite?: boolean;
+  inviteToken?: string;
+  initialEmail?: string;
 }
 
-export function SignupPage({ isInvite = false }: SignupPageProps) {
+export function SignupPage({
+  isInvite = false,
+  inviteToken,
+  initialEmail = "",
+}: SignupPageProps) {
   const router = useRouter();
 
   // Multi-step state
   const [step, setStep] = useState<1 | 2>(1);
 
   // Form states
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [name, setName] = useState("");
   const [organization, setOrganization] = useState("");
   const [password, setPassword] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const inviteCallback = inviteToken
+    ? `/invite/${encodeURIComponent(inviteToken)}`
+    : "/dashboard";
 
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,9 +69,12 @@ export function SignupPage({ isInvite = false }: SignupPageProps) {
 
       if (error) {
         toast.error(error.message || "Failed to create account");
+      } else if (isInvite) {
+        toast.success("Account created — joining your organization");
+        router.push(inviteCallback);
+        router.refresh();
       } else {
         toast.success("Account created successfully!");
-        // Redirect to the verification page
         router.push(`/verify?email=${encodeURIComponent(email)}`);
       }
     } catch (_err) {
@@ -76,8 +89,7 @@ export function SignupPage({ isInvite = false }: SignupPageProps) {
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        // Redirect to onboarding page if they are not invited, to capture organization.
-        callbackURL: isInvite ? "/dashboard" : "/onboarding",
+        callbackURL: isInvite ? inviteCallback : "/onboarding",
       });
 
       if (error) {
@@ -237,7 +249,14 @@ export function SignupPage({ isInvite = false }: SignupPageProps) {
       <CardFooter className="flex flex-col space-y-4">
         <div className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link
+            href={
+              inviteToken
+                ? `/login?token=${encodeURIComponent(inviteToken)}`
+                : "/login"
+            }
+            className="text-primary hover:underline"
+          >
             Sign in
           </Link>
         </div>

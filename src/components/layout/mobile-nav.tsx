@@ -49,7 +49,6 @@ export function MobileNav({ role, user }: MobileNavProps) {
   const settingsItems = getSettingsNavForRole(role);
   const initials = getInitials(user.name) || "U";
 
-  // Close sheet when route changes
   useEffect(() => {
     setOpen((wasOpen) => (pathname && wasOpen ? false : wasOpen));
   }, [pathname]);
@@ -68,11 +67,14 @@ export function MobileNav({ role, user }: MobileNavProps) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" size="icon" className="shrink-0 lg:hidden">
-          <Menu className="h-5 w-5" />
+          <Menu />
           <span className="sr-only">Toggle navigation menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="flex flex-col">
+      <SheetContent
+        side="left"
+        className="flex flex-col bg-sidebar text-sidebar-foreground"
+      >
         <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
         <SheetDescription className="sr-only">
           Access links to different parts of the application.
@@ -85,6 +87,9 @@ export function MobileNav({ role, user }: MobileNavProps) {
         />
 
         <nav className="grid flex-1 content-start gap-1 text-sm font-medium">
+          <p className="mb-1 px-3 text-xs font-medium tracking-wide text-sidebar-foreground/50 uppercase">
+            Menu
+          </p>
           {items.map((item) => {
             const Icon = item.icon;
             const isActive = isNavItemActive(pathname, item.href, items);
@@ -94,10 +99,10 @@ export function MobileNav({ role, user }: MobileNavProps) {
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
+                  "flex h-10 items-center gap-3 rounded-lg px-3 transition-colors",
                   isActive
-                    ? "bg-primary font-medium text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "bg-sidebar-primary font-medium text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 )}
               >
                 <Icon className="size-4" />
@@ -107,8 +112,8 @@ export function MobileNav({ role, user }: MobileNavProps) {
           })}
         </nav>
 
-        <div className="mt-auto border-t pt-4">
-          <div className="mb-3 flex items-center gap-3 px-1">
+        <div className="mt-auto border-t border-sidebar-border pt-4">
+          <div className="mb-3 flex items-center gap-3 rounded-xl bg-sidebar-accent px-3 py-2.5 text-sidebar-accent-foreground">
             <Avatar className="size-9 shrink-0">
               <AvatarImage src={user.image || ""} alt={user.name} />
               <AvatarFallback>{initials}</AvatarFallback>
@@ -116,7 +121,7 @@ export function MobileNav({ role, user }: MobileNavProps) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{user.name}</p>
               <p
-                className="truncate text-xs text-muted-foreground"
+                className="truncate text-xs text-sidebar-foreground/60"
                 title={user.email}
               >
                 {user.email}
@@ -134,8 +139,9 @@ export function MobileNav({ role, user }: MobileNavProps) {
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
-                    isActive && "bg-muted text-foreground font-medium",
+                    "flex h-10 items-center gap-3 rounded-lg px-3 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    isActive &&
+                      "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
                   )}
                 >
                   <Icon className="size-4" />
@@ -146,7 +152,7 @@ export function MobileNav({ role, user }: MobileNavProps) {
             <button
               type="button"
               onClick={handleSignOut}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-left text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="flex h-10 items-center gap-3 rounded-lg px-3 text-left text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             >
               <LogOut className="size-4" />
               Logout

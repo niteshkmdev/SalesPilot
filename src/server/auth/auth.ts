@@ -36,8 +36,16 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          // Sole auto-provision path: create org + owner membership on signup.
           try {
+            const { redeemPendingInvitationForNewUser } = await import(
+              "@/modules/organizations/services/invitation.service"
+            );
+            const redeemed = await redeemPendingInvitationForNewUser({
+              id: user.id,
+              email: user.email,
+            });
+            if (redeemed) return;
+
             await provisionOrganizationForUser({
               id: user.id,
               name: user.name,
@@ -46,7 +54,7 @@ export const auth = betterAuth({
               emailVerified: Boolean(user.emailVerified),
             });
           } catch (error) {
-            console.error("Failed to auto-provision organization:", error);
+            console.error("Failed to provision or redeem invitation:", error);
           }
         },
       },

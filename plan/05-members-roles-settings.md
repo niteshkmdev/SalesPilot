@@ -2,7 +2,7 @@
 
 ## Objective
 
-Build personal profile settings, member management, invitations, role assignments, and basic organization settings.
+Build personal profile settings, member management, invitations, role assignments, and basic organization settings — end-to-end with UI and backend.
 
 ## Status Legend
 
@@ -13,31 +13,31 @@ Build personal profile settings, member management, invitations, role assignment
 
 ## Current Status
 
-- Overall status: `[~]` In progress
-- Current task: Finish invite flow and editable organization settings (currently stubbed/disabled in UI).
-- Dependency: `03-app-shell-navigation` (and `04` skipped)
-- Next prompt after completion: `prompt/06-leads-management.md`
+- Overall status: `[x]` Complete
+- Current task: Closed — invite/role/remove/org update wired; Members in account-foot popper.
+- Dependency: `03-app-shell-navigation`
+- Next prompt after completion: restore active `06-leads-management`
 
-## Known Gaps
+## Navigation (locked)
 
-- Invite Member button is disabled; no invitation create/redeem flow yet.
-- Organization settings form is read-only; updates deferred.
-- Members nav href corrected to `/settings/members` in shell fix pass.
-- From Plan 02 close-out: invite + org edit remain owned here (not UI-first).
+- Profile + Members + Organization: sidebar **account foot popper**
+- Main nav: Dashboard + Leads only
+- No nested settings sidebar
 
 ## Task Checklist
 
-- `[x]` Draft implementation plan for Members & Settings (including Header Profile enhancement).
-- `[x]` Get plan approval from user.
-- `[x]` Update `AppShell` and `Header` to use `user.image` with Shadcn `Avatar`.
-- `[x]` Create `/settings` layout with sidebar/tabs for settings navigation.
-- `[x]` Implement `/settings/profile` for personal user details (Name edit, Email read-only).
-- `[x]` Implement `/settings/members` to list organization members and allow invitations (Admin only).
-- `[x]` Implement `/settings/organization` for org basic details.
-- `[x]` Update `PROJECT_TRACKER.md` on completion.
+- `[x]` Profile settings (`/settings/profile`) via Better Auth `updateUser`
+- `[x]` Seed default Admin/Manager/Member roles with permission sets
+- `[x]` Invitation create / email / resend / revoke
+- `[x]` Accept invite on signup (auth hook) and `/invite/[token]`
+- `[x]` Member role update + remove with authz guards
+- `[x]` Organization name update (slug read-only)
+- `[x]` Unit tests + validation
+- `[x]` Update `PROJECT_TRACKER.md` / `AGENTS.md`; mark plan `[x]`; restore Plan 06
 
 ## Implementation Rules
 
-- Follow RBAC docs: only Admin/Owner can manage members or organization settings.
-- Use Better Auth `authClient.updateUser` for personal profile updates.
-- Real API calls should use tRPC or Server Actions (we will use Next.js Server Actions or Route Handlers with DTO validation as per `docs/02-architecture.md`).
+- Follow RBAC docs: permission checks via `createAuthorizationService`
+- Server Actions + services + repositories + DTOs (Zod)
+- Invite tokens: secure, single-use, 7-day expiry
+- Owner cannot be removed; Owner role not assignable via invite

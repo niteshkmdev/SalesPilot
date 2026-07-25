@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -46,16 +46,6 @@ export function Header({ role, user, organization }: HeaderProps) {
               {workspaceLabel}
             </p>
           </div>
-        </div>
-
-        <div className="hidden flex-1 justify-center md:flex">
-          <Link
-            href="/leads"
-            className="flex w-full max-w-md items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
-          >
-            <SearchIcon className="size-4 shrink-0" />
-            <span className="truncate">Search leads…</span>
-          </Link>
         </div>
 
         <div className="ml-auto flex items-center gap-2">

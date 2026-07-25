@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { ChevronUp, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -48,25 +48,30 @@ export function Sidebar({ role, user }: SidebarProps) {
   const accountActive = pathname.startsWith("/settings");
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-[280px] flex-col border-r bg-background lg:flex">
-      <div className="flex h-full flex-col gap-4 px-3 pt-4 pb-2">
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-[280px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
+      <div className="flex h-full flex-col gap-5 px-3 pt-4 pb-3">
         <SalesPilotBrandLink href="/dashboard" className="h-10 shrink-0 px-3" />
 
         <nav
           aria-label="Main navigation"
-          className="flex min-h-0 flex-1 flex-col"
+          className="flex min-h-0 flex-1 flex-col gap-4"
         >
-          <div className="flex flex-col gap-0.5">
-            {items.map((item) => (
-              <SidebarItem
-                key={item.title}
-                item={item}
-                isActive={isNavItemActive(pathname, item.href, items)}
-              />
-            ))}
+          <div className="flex flex-col gap-1">
+            <p className="px-3 text-xs font-medium tracking-wide text-sidebar-foreground/50 uppercase">
+              Menu
+            </p>
+            <div className="flex flex-col gap-1">
+              {items.map((item) => (
+                <SidebarItem
+                  key={item.title}
+                  item={item}
+                  isActive={isNavItemActive(pathname, item.href, items)}
+                />
+              ))}
+            </div>
           </div>
 
-          <div className="mt-auto border-t pt-2">
+          <div className="mt-auto border-t border-sidebar-border pt-3">
             <AccountMenu
               user={user}
               settingsItems={settingsItems}
@@ -109,8 +114,8 @@ function AccountMenu({
         <button
           type="button"
           className={cn(
-            "flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-left transition-colors hover:bg-muted",
-            isActive && "bg-primary/10",
+            "flex w-full items-center gap-3 rounded-xl bg-sidebar-accent px-3 py-2.5 text-left text-sidebar-accent-foreground transition-colors hover:brightness-[0.98]",
+            isActive && "ring-1 ring-sidebar-ring/40",
           )}
         >
           <Avatar className="size-8 shrink-0">
@@ -118,16 +123,15 @@ function AccountMenu({
             <AvatarFallback className="text-xs">{initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1 overflow-hidden">
-            <p className="truncate text-sm font-medium text-foreground">
-              {user.name}
-            </p>
+            <p className="truncate text-sm font-medium">{user.name}</p>
             <p
-              className="truncate text-xs text-muted-foreground"
+              className="truncate text-xs text-sidebar-foreground/60"
               title={user.email}
             >
               {user.email}
             </p>
           </div>
+          <ChevronUp className="size-4 shrink-0 text-sidebar-foreground/50" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -136,7 +140,7 @@ function AccountMenu({
         className="w-64"
         sideOffset={8}
       >
-        <DropdownMenuLabel className="font-normal p-0">
+        <DropdownMenuLabel className="p-0 font-normal">
           <button
             type="button"
             className="flex w-full items-center gap-3 rounded-sm px-2 py-2 text-left hover:bg-muted"
@@ -167,14 +171,14 @@ function AccountMenu({
               onClick={() => router.push(item.href)}
               className={cn(itemActive && "bg-muted font-medium")}
             >
-              <Icon className="size-4" />
+              <Icon />
               {item.title}
             </DropdownMenuItem>
           );
         })}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
-          <LogOut className="size-4" />
+          <LogOut />
           Logout
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -188,10 +192,10 @@ function SidebarItem({ item, isActive }: { item: NavItem; isActive: boolean }) {
     <Link
       href={item.href}
       className={cn(
-        "flex h-9 w-full shrink-0 items-center gap-3 rounded-md px-3 text-sm transition-colors",
+        "flex h-10 w-full shrink-0 items-center gap-3 rounded-lg px-3 text-sm transition-colors",
         isActive
-          ? "bg-primary font-medium text-primary-foreground"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          ? "bg-sidebar-primary font-medium text-sidebar-primary-foreground"
+          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
       )}
     >
       <Icon className="size-4 shrink-0" />

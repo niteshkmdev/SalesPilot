@@ -1,9 +1,27 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { listActiveCustomFieldsForLeads } from "@/modules/custom-fields";
+import {
+  getLead,
+  getLeadCapabilities,
+  listLeadSources,
+  listLeadStatuses,
+  listManagerAssigneeOptions,
+  listMemberAssigneeOptions,
+} from "@/modules/leads";
 import { LeadForm } from "@/modules/leads/components/lead-form";
-import { auth } from "@/server/auth/auth";
-import { prisma } from "@/server/db/prisma";
-import { LeadService } from "@/server/services/lead.service";
+import { LeadPageHeader } from "@/modules/leads/components/lead-page-header";
+import { ApiErrorCode, AppError } from "@/shared/api/errors";
+
+async function loadLead(leadId: string) {
+  try {
+    return await getLead(leadId);
+  } catch (error) {
+    if (error instanceof AppError && error.code === ApiErrorCode.NOT_FOUND) {
+      notFound();
+    }
+    throw error;
+  }
+}
 
 export default async function EditLeadPage({
   params,
@@ -12,39 +30,46 @@ export default async function EditLeadPage({
 }) {
   const { id: leadId } = await params;
 
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const member = await prisma.organizationMember.findFirst({
-    where: { userId: session.user.id },
-  });
-
-  if (!member) {
-    return <div>No organization found.</div>;
-  }
-
-  const leadService = new LeadService();
-  const [lead, statuses, sources] = await Promise.all([
-    leadService.getLead(session.user.id, member.organizationId, leadId),
-    leadService.getStatuses(session.user.id, member.organizationId),
-    leadService.getSources(session.user.id, member.organizationId),
+  const [
+    lead,
+    statuses,
+    sources,
+    memberOptions,
+    managerOptions,
+    capabilities,
+    customFields,
+  ] = await Promise.all([
+    loadLead(leadId),
+    listLeadStatuses(),
+    listLeadSources(),
+    listMemberAssigneeOptions(),
+    listManagerAssigneeOptions(),
+    getLeadCapabilities(),
+    listActiveCustomFieldsForLeads(),
   ]);
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Edit Lead</h1>
-        <p className="text-muted-foreground">
-          Update details for {lead.firstName} {lead.lastName}.
-        </p>
-      </div>
+  if (!capabilities.canEditFull) {
+    redirect(`/leads/${lead.id}`);
+  }
 
-      <LeadForm initialData={lead} statuses={statuses} sources={sources} />
+  return (
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+      <LeadPageHeader
+        backHref={`/leads/${lead.id}`}
+        backLabel="Back to lead"
+        title={`${lead.firstName} ${lead.lastName}`}
+        subtitle="Edit lead details"
+      />
+
+      <LeadForm
+        initialData={lead}
+        statuses={statuses}
+        sources={sources}
+        memberOptions={memberOptions}
+        managerOptions={managerOptions}
+        canAssign={capabilities.canAssign}
+        customFields={customFields}
+      />
     </div>
   );
 }

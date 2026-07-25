@@ -6,14 +6,15 @@ export const metadata: Metadata = {
   description: "Create your SalesPilot account",
 };
 
-// In Next.js App Router, to access search params in a Server Component page:
 export default async function SignupRoute({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const resolvedParams = await searchParams;
-  const isInvite = resolvedParams.invite === "true" || !!resolvedParams.token;
+  const token =
+    typeof resolvedParams.token === "string" ? resolvedParams.token : undefined;
+  const isInvite = resolvedParams.invite === "true" || !!token;
 
-  return <SignupPage isInvite={isInvite} />;
+  return <SignupPage isInvite={isInvite} inviteToken={token} />;
 }

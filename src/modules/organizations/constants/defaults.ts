@@ -49,3 +49,5 @@ export const defaultLeadSources = [
 ];
 
 export const ownerRoleName = "Owner";
+
+export { systemRoleNames } from "@/modules/organizations/constants/default-roles";

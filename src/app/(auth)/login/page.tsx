@@ -6,6 +6,13 @@ export const metadata: Metadata = {
   description: "Sign in to your SalesPilot account",
 };
 
-export default function LoginRoute() {
-  return <LoginPage />;
+export default async function LoginRoute({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolved = await searchParams;
+  const token = typeof resolved.token === "string" ? resolved.token : undefined;
+
+  return <LoginPage inviteToken={token} />;
 }

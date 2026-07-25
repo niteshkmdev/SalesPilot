@@ -1,107 +1,154 @@
-import type { Prisma } from "@prisma/client";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
+import { requireAppContext } from "@/modules/auth/services/app-context.service";
+import type { InvitationDto } from "@/modules/organizations/dto/invitation.dto";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { auth } from "@/server/auth/auth";
-import { prisma } from "@/server/db/prisma";
+  hasActiveMemberFilters,
+  type MemberDto,
+  MemberListFiltersSchema,
+} from "@/modules/organizations/dto/member.dto";
+import { listPendingInvitations } from "@/modules/organizations/services/invitation.service";
+import {
+  listAssignableRoles,
+  listOrganizationMembers,
+  listOrganizationRoles,
+} from "@/modules/organizations/services/member.service";
+import { Permissions } from "@/modules/permissions/constants/permissions";
+import { createAuthorizationService } from "@/modules/permissions/services/authorization.service";
+import { InviteMemberDialog } from "@/modules/settings/components/invite-member-dialog";
+import { MemberFilters } from "@/modules/settings/components/member-filters";
+import { MemberSearchToggle } from "@/modules/settings/components/member-search-toggle";
+import { MembersTable } from "@/modules/settings/components/members-table";
+import { PendingInvitations } from "@/modules/settings/components/pending-invitations";
 
-const memberListInclude = {
-  user: true,
-  role: true,
-} satisfies Prisma.OrganizationMemberInclude;
+function matchesQuery(haystack: string, query: string): boolean {
+  return haystack.toLowerCase().includes(query);
+}
 
-type OrganizationMemberRow = Prisma.OrganizationMemberGetPayload<{
-  include: typeof memberListInclude;
-}>;
-
-export default async function MembersPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
+function filterMembers(
+  members: MemberDto[],
+  q: string | undefined,
+  roleId: string | undefined,
+): MemberDto[] {
+  const query = q?.trim().toLowerCase();
+  return members.filter((member) => {
+    if (roleId && member.roleId !== roleId) return false;
+    if (!query) return true;
+    return (
+      matchesQuery(member.name, query) || matchesQuery(member.email, query)
+    );
   });
+}
 
-  if (!session || !session.user) {
-    redirect("/login");
-  }
-
-  const currentMember = await prisma.organizationMember.findFirst({
-    where: { userId: session.user.id },
-    include: { role: true },
+function filterInvitations(
+  invitations: InvitationDto[],
+  q: string | undefined,
+  roleId: string | undefined,
+): InvitationDto[] {
+  const query = q?.trim().toLowerCase();
+  return invitations.filter((invitation) => {
+    if (roleId && invitation.roleId !== roleId) return false;
+    if (!query) return true;
+    return matchesQuery(invitation.email, query);
   });
+}
 
-  if (!currentMember) {
-    return <div>Not part of any organization.</div>;
-  }
+export default async function MembersPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const ctx = await requireAppContext();
+  const authz = createAuthorizationService(ctx.permissions);
+  const canRead = await authz.can(Permissions.MEMBER_READ);
 
-  const roleName =
-    currentMember.role?.name || (currentMember.isOwner ? "Owner" : "Member");
-  if (roleName !== "Owner" && roleName !== "Admin") {
-    return <div>You do not have permission to view this page.</div>;
-  }
-
-  const members: OrganizationMemberRow[] =
-    await prisma.organizationMember.findMany({
-      where: { organizationId: currentMember.organizationId },
-      include: memberListInclude,
-      orderBy: {
-        joinedAt: "asc",
-      },
-    });
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+  if (!canRead) {
+    return (
+      <div className="flex flex-col gap-6">
         <div>
-          <h3 className="text-lg font-medium">Members</h3>
-          <p className="text-sm text-muted-foreground">
-            Manage who has access to your organization.
+          <h1 className="text-2xl font-bold tracking-tight">Members</h1>
+          <p className="text-muted-foreground">
+            You do not have permission to view members.
           </p>
         </div>
-        <button
-          type="button"
-          disabled
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-        >
-          Invite Member
-        </button>
+      </div>
+    );
+  }
+
+  const raw = await searchParams;
+  const pick = (key: string) => {
+    const value = raw[key];
+    return typeof value === "string" ? value : undefined;
+  };
+
+  const filters = MemberListFiltersSchema.parse({
+    q: pick("q") || undefined,
+    roleId: pick("roleId") || undefined,
+  });
+
+  const canInvite = await authz.can(Permissions.MEMBER_INVITE);
+  const canManage =
+    (await authz.can(Permissions.MEMBER_UPDATE)) ||
+    (await authz.can(Permissions.MEMBER_REMOVE));
+
+  const [members, assignableRoles, allRoles, invitations] = await Promise.all([
+    listOrganizationMembers(),
+    listAssignableRoles(),
+    listOrganizationRoles(),
+    listPendingInvitations(),
+  ]);
+
+  const filteredMembers = filterMembers(members, filters.q, filters.roleId);
+  const filteredInvitations = filterInvitations(
+    invitations,
+    filters.q,
+    filters.roleId,
+  );
+  const memberCount = filteredMembers.length;
+  const filtersActive =
+    hasActiveMemberFilters(filters) || Boolean(filters.q?.trim());
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Members</h1>
+          <p className="text-muted-foreground">
+            Manage who has access to your organization. {memberCount} member
+            {memberCount === 1 ? "" : "s"}
+            {filtersActive ? " matching filters" : ""}.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <MemberSearchToggle initialQuery={filters.q ?? ""} />
+          <MemberFilters
+            roles={allRoles}
+            q={filters.q}
+            roleId={filters.roleId}
+          />
+          {canInvite ? <InviteMemberDialog roles={assignableRoles} /> : null}
+        </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {members.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell className="font-medium">
-                  {member.user.name}
-                </TableCell>
-                <TableCell>{member.user.email}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">
-                    {member.isOwner ? "Owner" : member.role?.name || "Member"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {member.user.emailVerified ? "Verified" : "Pending"}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <MembersTable
+        members={filteredMembers}
+        roles={assignableRoles}
+        currentMemberId={ctx.member.id}
+        canManage={canManage}
+        emptyVariant={filtersActive ? "filtered" : "none"}
+      />
+
+      <div className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">
+            Pending invitations
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Invites expire after 7 days. Resend to refresh the link.
+          </p>
+        </div>
+        <PendingInvitations
+          invitations={filteredInvitations}
+          emptyVariant={filtersActive ? "filtered" : "none"}
+        />
       </div>
     </div>
   );

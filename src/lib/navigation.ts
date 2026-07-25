@@ -1,6 +1,7 @@
 import {
   Building2,
   ClipboardList,
+  FormInput,
   LayoutDashboard,
   type LucideIcon,
   User,
@@ -18,9 +19,8 @@ export interface NavItem {
 
 /**
  * Live navigation only includes routes that exist today.
- * Forms, Branding, and Notifications are deferred until their plans ship.
- * Settings is opened via a sidebar popper (see settingsNavItems), not a top-level link.
- * Members is top-level only (not duplicated in settings).
+ * Branding and Notifications remain deferred until their plans ship.
+ * Profile, Organization, Members, and Custom Fields open from the account foot.
  */
 export const navigationItems: NavItem[] = [
   {
@@ -36,14 +36,14 @@ export const navigationItems: NavItem[] = [
     roles: ["Owner", "Admin", "Manager", "Member"],
   },
   {
-    title: "Members",
-    href: "/settings/members",
-    icon: UsersRound,
-    roles: ["Owner", "Admin"],
+    title: "Forms",
+    href: "/forms",
+    icon: FormInput,
+    roles: ["Owner", "Admin", "Manager"],
   },
 ];
 
-/** Destinations shown in the Settings sidebar/header popper. */
+/** Destinations shown in the sidebar account foot popper. */
 export const settingsNavItems: NavItem[] = [
   {
     title: "Profile",
@@ -55,6 +55,18 @@ export const settingsNavItems: NavItem[] = [
     title: "Organization",
     href: "/settings/organization",
     icon: Building2,
+    roles: ["Owner", "Admin"],
+  },
+  {
+    title: "Members",
+    href: "/settings/members",
+    icon: UsersRound,
+    roles: ["Owner", "Admin"],
+  },
+  {
+    title: "Custom Fields",
+    href: "/settings/custom-fields",
+    icon: FormInput,
     roles: ["Owner", "Admin"],
   },
 ];
@@ -75,7 +87,7 @@ export function getSettingsNavForRole(role: string): NavItem[] {
   return settingsNavItems.filter((item) => item.roles.includes(matchedRole));
 }
 
-/** Prefer the most specific matching nav href (e.g. Members over Settings). */
+/** Prefer the most specific matching nav href. */
 export function isNavItemActive(
   pathname: string,
   href: string,

@@ -1,77 +1,78 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
-import { auth } from "@/server/auth/auth";
-import { prisma } from "@/server/db/prisma";
 import {
+  AssignLeadSchema,
+  assignLead,
   CreateLeadSchema,
+  createLead,
+  deleteLead,
   normalizeLeadPayload,
   UpdateLeadSchema,
-} from "@/server/dto/lead.dto";
-import { LeadService } from "@/server/services/lead.service";
+  updateLead,
+} from "@/modules/leads";
+import { AppError } from "@/shared/api/errors";
 
-const leadService = new LeadService();
-
-async function requireSessionMember() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    throw new Error("Unauthorized");
+function actionError(error: unknown): { error: string } {
+  if (error instanceof AppError) {
+    return { error: error.message };
   }
-
-  const member = await prisma.organizationMember.findFirst({
-    where: { userId: session.user.id },
-  });
-
-  if (!member) {
-    throw new Error("User does not belong to any organization");
+  if (error instanceof Error) {
+    return { error: error.message };
   }
+  return { error: "Something went wrong." };
+}
 
-  return { session, member };
+function revalidateLeadPaths(leadId?: string) {
+  revalidatePath("/leads");
+  if (leadId) {
+    revalidatePath(`/leads/${leadId}`);
+  }
 }
 
 export async function createLeadAction(data: unknown) {
-  const { session, member } = await requireSessionMember();
-  const parsed = CreateLeadSchema.parse(
-    normalizeLeadPayload(data as Record<string, unknown>),
-  );
-
-  const lead = await leadService.createLead(
-    session.user.id,
-    member.organizationId,
-    parsed,
-  );
-
-  revalidatePath("/leads");
-  return { success: true, leadId: lead.id };
+  try {
+    const parsed = CreateLeadSchema.parse(
+      normalizeLeadPayload(data as Record<string, unknown>),
+    );
+    const lead = await createLead(parsed);
+    revalidateLeadPaths(lead.id);
+    return { success: true as const, leadId: lead.id };
+  } catch (error) {
+    return actionError(error);
+  }
 }
 
 export async function updateLeadAction(leadId: string, data: unknown) {
-  const { session, member } = await requireSessionMember();
-  const parsed = UpdateLeadSchema.parse(
-    normalizeLeadPayload(data as Record<string, unknown>),
-  );
+  try {
+    const parsed = UpdateLeadSchema.parse(
+      normalizeLeadPayload(data as Record<string, unknown>),
+    );
+    await updateLead(leadId, parsed);
+    revalidateLeadPaths(leadId);
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
 
-  await leadService.updateLead(
-    session.user.id,
-    member.organizationId,
-    leadId,
-    parsed,
-  );
-
-  revalidatePath("/leads");
-  revalidatePath(`/leads/${leadId}`);
-  return { success: true };
+export async function assignLeadAction(leadId: string, data: unknown) {
+  try {
+    const parsed = AssignLeadSchema.parse(data);
+    await assignLead(leadId, parsed);
+    revalidateLeadPaths(leadId);
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
 }
 
 export async function deleteLeadAction(leadId: string) {
-  const { session, member } = await requireSessionMember();
-
-  await leadService.deleteLead(session.user.id, member.organizationId, leadId);
-
-  revalidatePath("/leads");
-  return { success: true };
+  try {
+    await deleteLead(leadId);
+    revalidateLeadPaths(leadId);
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
 }

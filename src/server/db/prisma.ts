@@ -1,10 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import { env } from "@/server/env";
 
+/**
+ * Bump when Prisma schema fields change so the HMR singleton is recreated
+ * instead of keeping a stale client that rejects new arguments.
+ */
+const PRISMA_CLIENT_REVISION = "invitation-revokedAt-v1";
+
 declare global {
   // Allow global `var` declaration in development to prevent multiple instances.
   // eslint-disable-next-line no-var
   var prismaGlobal: PrismaClient | undefined;
+  // eslint-disable-next-line no-var
+  var prismaClientRevision: string | undefined;
 }
 
 /**
@@ -30,9 +38,24 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
-export const prisma: PrismaClient =
-  globalThis.prismaGlobal ?? createPrismaClient();
+function getPrismaClient(): PrismaClient {
+  if (
+    env.NODE_ENV !== "production" &&
+    globalThis.prismaGlobal &&
+    globalThis.prismaClientRevision !== PRISMA_CLIENT_REVISION
+  ) {
+    void globalThis.prismaGlobal.$disconnect();
+    globalThis.prismaGlobal = undefined;
+  }
 
-if (env.NODE_ENV !== "production") {
-  globalThis.prismaGlobal = prisma;
+  const client = globalThis.prismaGlobal ?? createPrismaClient();
+
+  if (env.NODE_ENV !== "production") {
+    globalThis.prismaGlobal = client;
+    globalThis.prismaClientRevision = PRISMA_CLIENT_REVISION;
+  }
+
+  return client;
 }
+
+export const prisma: PrismaClient = getPrismaClient();

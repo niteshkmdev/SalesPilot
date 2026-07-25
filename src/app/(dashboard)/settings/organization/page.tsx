@@ -1,77 +1,57 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { auth } from "@/server/auth/auth";
-import { prisma } from "@/server/db/prisma";
+import { requireAppContext } from "@/modules/auth/services/app-context.service";
+import { Permissions } from "@/modules/permissions/constants/permissions";
+import { createAuthorizationService } from "@/modules/permissions/services/authorization.service";
+import { OrganizationForm } from "@/modules/settings/components/organization-form";
 
 export default async function OrganizationSettingsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const ctx = await requireAppContext();
+  const authz = createAuthorizationService(ctx.permissions);
+  const canUpdate = await authz.can(Permissions.ORGANIZATION_UPDATE);
+  const canRead = await authz.can(Permissions.ORGANIZATION_READ);
 
-  if (!session || !session.user) {
-    redirect("/login");
+  if (!canRead && !canUpdate) {
+    return (
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Organization Settings
+          </h1>
+          <p className="text-muted-foreground">
+            You do not have permission to view organization settings.
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  const member = await prisma.organizationMember.findFirst({
-    where: { userId: session.user.id },
-    include: { organization: true, role: true },
-  });
-
-  if (!member || !member.organization) {
-    return <div>No organization found.</div>;
-  }
-
-  // Placeholder static form for now. Future PR will wire it to Server Actions.
   return (
-    <div className="space-y-6">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <div>
-        <h3 className="text-lg font-medium">Organization Settings</h3>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight">
+          Organization Settings
+        </h1>
+        <p className="text-muted-foreground">
           Manage your organization details.
         </p>
       </div>
 
-      <form className="space-y-8">
-        <div className="space-y-4">
-          <div className="grid gap-2">
-            <label
-              htmlFor="orgName"
-              className="text-sm font-medium leading-none"
-            >
-              Organization Name
-            </label>
-            <input
-              id="orgName"
-              type="text"
-              defaultValue={member.organization.name}
-              disabled // disabled for now to reflect WIP state
-              className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-            />
+      {canUpdate ? (
+        <OrganizationForm
+          name={ctx.organization.name}
+          slug={ctx.organization.slug}
+        />
+      ) : (
+        <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">Name</p>
+            <p className="font-medium">{ctx.organization.name}</p>
           </div>
-
-          <div className="grid gap-2">
-            <label
-              htmlFor="orgSlug"
-              className="text-sm font-medium leading-none"
-            >
-              Slug URL
-            </label>
-            <input
-              id="orgSlug"
-              defaultValue={member.organization.slug}
-              disabled
-              className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-            />
+          <div>
+            <p className="text-muted-foreground">Slug</p>
+            <p className="font-medium">{ctx.organization.slug}</p>
           </div>
         </div>
-        <button
-          type="button"
-          disabled
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-        >
-          Update Organization
-        </button>
-      </form>
+      )}
     </div>
   );
 }

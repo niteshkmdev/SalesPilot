@@ -31,6 +31,38 @@ export interface MemberWithContext extends OrganizationMember {
   };
 }
 
+const memberListInclude = {
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      emailVerified: true,
+      image: true,
+    },
+  },
+  role: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+} as const;
+
+export type MemberListRow = OrganizationMember & {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    emailVerified: boolean;
+    image: string | null;
+  };
+  role: {
+    id: string;
+    name: string;
+  };
+};
+
 export async function createMember(
   db: DatabaseClient,
   input: CreateMemberInput,
@@ -60,6 +92,57 @@ export async function findFirstActiveMemberByUserId(
     },
     orderBy: { joinedAt: "asc" },
   });
+}
+
+export async function listMembersByOrganization(
+  db: DatabaseClient,
+  organizationId: string,
+): Promise<MemberListRow[]> {
+  return db.organizationMember.findMany({
+    where: { organizationId },
+    include: memberListInclude,
+    orderBy: { joinedAt: "asc" },
+  });
+}
+
+export async function findMemberById(
+  db: DatabaseClient,
+  memberId: string,
+): Promise<MemberListRow | null> {
+  return db.organizationMember.findUnique({
+    where: { id: memberId },
+    include: memberListInclude,
+  });
+}
+
+export async function findMemberByUserAndOrg(
+  db: DatabaseClient,
+  organizationId: string,
+  userId: string,
+): Promise<OrganizationMember | null> {
+  return db.organizationMember.findUnique({
+    where: {
+      organizationId_userId: { organizationId, userId },
+    },
+  });
+}
+
+export async function updateMemberRole(
+  db: DatabaseClient,
+  memberId: string,
+  roleId: string,
+): Promise<OrganizationMember> {
+  return db.organizationMember.update({
+    where: { id: memberId },
+    data: { roleId, isOwner: false },
+  });
+}
+
+export async function deleteMember(
+  db: DatabaseClient,
+  memberId: string,
+): Promise<void> {
+  await db.organizationMember.delete({ where: { id: memberId } });
 }
 
 export function getPermissionNamesFromMember(

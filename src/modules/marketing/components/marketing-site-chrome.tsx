@@ -21,6 +21,9 @@ export function MarketingSiteHeader({
           <Link href="/#features" className="hover:text-foreground">
             Features
           </Link>
+          <Link href="/#product" className="hover:text-foreground">
+            Product
+          </Link>
           <Link href="/#pricing" className="hover:text-foreground">
             Pricing
           </Link>

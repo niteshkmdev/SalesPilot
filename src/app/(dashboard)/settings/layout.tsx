@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+/** Full-width like Leads/Dashboard; form pages add their own max-width. */
 export default function SettingsLayout({ children }: { children: ReactNode }) {
-  return <div className="mx-auto w-full max-w-2xl">{children}</div>;
+  return <>{children}</>;
 }

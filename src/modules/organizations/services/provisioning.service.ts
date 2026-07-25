@@ -16,6 +16,7 @@ import {
   createRole,
   createRolePermissions,
 } from "@/modules/organizations/repository/role.repository";
+import { ensureDefaultRoles } from "@/modules/organizations/services/role-seed.service";
 import type {
   AppUser,
   OrganizationContext,
@@ -69,6 +70,8 @@ export async function provisionOrganizationForUser(
       roleId: ownerRole.id,
       isOwner: true,
     });
+
+    await ensureDefaultRoles(tx, organization.id);
 
     await createDefaultLeadStatuses(tx, organization.id, defaultLeadStatuses);
     await createDefaultLeadSources(tx, organization.id, defaultLeadSources);

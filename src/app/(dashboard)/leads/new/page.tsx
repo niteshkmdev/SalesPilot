@@ -1,43 +1,47 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { listActiveCustomFieldsForLeads } from "@/modules/custom-fields";
+import {
+  getLeadCapabilities,
+  listLeadSources,
+  listLeadStatuses,
+  listManagerAssigneeOptions,
+  listMemberAssigneeOptions,
+} from "@/modules/leads";
 import { LeadForm } from "@/modules/leads/components/lead-form";
-import { auth } from "@/server/auth/auth";
-import { prisma } from "@/server/db/prisma";
-import { LeadService } from "@/server/services/lead.service";
+import { LeadPageHeader } from "@/modules/leads/components/lead-page-header";
 
 export default async function NewLeadPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const member = await prisma.organizationMember.findFirst({
-    where: { userId: session.user.id },
-  });
-
-  if (!member) {
-    return <div>No organization found.</div>;
-  }
-
-  const leadService = new LeadService();
-  const [statuses, sources] = await Promise.all([
-    leadService.getStatuses(session.user.id, member.organizationId),
-    leadService.getSources(session.user.id, member.organizationId),
+  const [
+    statuses,
+    sources,
+    memberOptions,
+    managerOptions,
+    capabilities,
+    customFields,
+  ] = await Promise.all([
+    listLeadStatuses(),
+    listLeadSources(),
+    listMemberAssigneeOptions(),
+    listManagerAssigneeOptions(),
+    getLeadCapabilities(),
+    listActiveCustomFieldsForLeads(),
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Create Lead</h1>
-        <p className="text-muted-foreground">
-          Add a new lead to your pipeline.
-        </p>
-      </div>
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+      <LeadPageHeader
+        backHref="/leads"
+        title="New lead"
+        subtitle="Add a lead to your pipeline"
+      />
 
-      <LeadForm statuses={statuses} sources={sources} />
+      <LeadForm
+        statuses={statuses}
+        sources={sources}
+        memberOptions={memberOptions}
+        managerOptions={managerOptions}
+        canAssign={capabilities.canAssign}
+        customFields={customFields}
+      />
     </div>
   );
 }

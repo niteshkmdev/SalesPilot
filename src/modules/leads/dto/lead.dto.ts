@@ -15,6 +15,7 @@ export const CreateLeadSchema = z.object({
   sourceId: z.string().optional().or(z.literal("")),
   assignedManagerId: z.string().optional().or(z.literal("")),
   assignedMemberId: z.string().optional().or(z.literal("")),
+  customValues: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type CreateLeadDto = z.infer<typeof CreateLeadSchema>;
@@ -25,10 +26,49 @@ export const UpdateLeadSchema = CreateLeadSchema.partial().extend({
 
 export type UpdateLeadDto = z.infer<typeof UpdateLeadSchema>;
 
+export const AssignLeadSchema = z.object({
+  assignedMemberId: z.string().nullable().optional(),
+  assignedManagerId: z.string().nullable().optional(),
+});
+
+export type AssignLeadDto = z.infer<typeof AssignLeadSchema>;
+
+const optionalBoolean = z
+  .union([z.boolean(), z.literal("true"), z.literal("false"), z.literal("")])
+  .optional()
+  .transform((value) => {
+    if (value === undefined || value === "") return undefined;
+    if (value === true || value === "true") return true;
+    if (value === false || value === "false") return false;
+    return undefined;
+  });
+
+const optionalDateString = z
+  .string()
+  .optional()
+  .transform((value) => {
+    if (!value?.trim()) return undefined;
+    return value.trim();
+  });
+
 export const LeadListFiltersSchema = z.object({
   q: z.string().optional(),
   statusId: z.string().optional(),
   sourceId: z.string().optional(),
+  assignedMemberId: z.string().optional(),
+  assignedManagerId: z.string().optional(),
+  createdFrom: optionalDateString,
+  createdTo: optionalDateString,
+  updatedFrom: optionalDateString,
+  updatedTo: optionalDateString,
+  isDuplicate: optionalBoolean,
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(25),
+  sort: z
+    .enum(["createdAt", "updatedAt", "firstName", "company"])
+    .optional()
+    .default("updatedAt"),
+  order: z.enum(["asc", "desc"]).optional().default("desc"),
 });
 
 export type LeadListFilters = z.infer<typeof LeadListFiltersSchema>;
@@ -50,6 +90,13 @@ export interface LeadAssigneeDto {
   name: string;
 }
 
+export interface LeadAssigneeOptionDto {
+  id: string;
+  name: string;
+  email: string;
+  roleName: string;
+}
+
 export interface LeadListItemDto {
   id: string;
   firstName: string;
@@ -61,7 +108,13 @@ export interface LeadListItemDto {
   status: LeadStatusDto | null;
   source: LeadSourceDto | null;
   assignedMember: LeadAssigneeDto | null;
+  assignedMemberId: string | null;
+  assignedManager: LeadAssigneeDto | null;
+  assignedManagerId: string | null;
+  createdBy: string;
+  isDuplicate: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface LeadDetailDto extends LeadListItemDto {
@@ -70,8 +123,25 @@ export interface LeadDetailDto extends LeadListItemDto {
   sourceId: string | null;
   website: string | null;
   description: string | null;
-  assignedManager: LeadAssigneeDto | null;
-  updatedAt: string;
+  customValues: Array<{
+    fieldId: string;
+    name: string;
+    slug: string;
+    type: string;
+    required: boolean;
+    active: boolean;
+    value: unknown;
+  }>;
+}
+
+export interface LeadListResultDto {
+  leads: LeadListItemDto[];
+  count: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  sort: LeadListFilters["sort"];
+  order: LeadListFilters["order"];
 }
 
 /** Map named status tokens (from org defaults) to hex for badge styles. */
@@ -120,4 +190,33 @@ export function normalizeLeadPayload<T extends Record<string, unknown>>(
     }
   }
   return next;
+}
+
+export function hasActiveListFilters(
+  filters: Pick<
+    LeadListFilters,
+    | "q"
+    | "statusId"
+    | "sourceId"
+    | "assignedMemberId"
+    | "assignedManagerId"
+    | "createdFrom"
+    | "createdTo"
+    | "updatedFrom"
+    | "updatedTo"
+    | "isDuplicate"
+  >,
+): boolean {
+  return Boolean(
+    filters.q?.trim() ||
+      filters.statusId ||
+      filters.sourceId ||
+      filters.assignedMemberId ||
+      filters.assignedManagerId ||
+      filters.createdFrom ||
+      filters.createdTo ||
+      filters.updatedFrom ||
+      filters.updatedTo ||
+      filters.isDuplicate !== undefined,
+  );
 }

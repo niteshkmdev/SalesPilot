@@ -13,11 +13,11 @@ export default async function ProfileSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <div>
-        <h3 className="text-lg font-medium">Profile</h3>
-        <p className="text-sm text-muted-foreground">
-          This is how others will see you on the site.
+        <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
+        <p className="text-muted-foreground">
+          This is how others will see you in the workspace.
         </p>
       </div>
       <ProfileForm user={session.user} />

@@ -13,11 +13,29 @@ export async function findOrganizationBySlug(
   return db.organization.findUnique({ where: { slug } });
 }
 
+export async function findOrganizationById(
+  db: DatabaseClient,
+  organizationId: string,
+): Promise<Organization | null> {
+  return db.organization.findUnique({ where: { id: organizationId } });
+}
+
 export async function createOrganization(
   db: DatabaseClient,
   input: CreateOrganizationInput,
 ): Promise<Organization> {
   return db.organization.create({ data: input });
+}
+
+export async function updateOrganizationName(
+  db: DatabaseClient,
+  organizationId: string,
+  name: string,
+): Promise<Organization> {
+  return db.organization.update({
+    where: { id: organizationId },
+    data: { name },
+  });
 }
 
 export async function createDefaultLeadStatuses(

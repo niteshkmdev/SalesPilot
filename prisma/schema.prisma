@@ -124,6 +124,7 @@ model OrganizationMember {
   createdNotes         LeadNote[] @relation("LeadNoteCreatedBy")
   createdForms         LeadForm[] @relation("LeadFormCreatedBy")
   updatedForms         LeadForm[] @relation("LeadFormUpdatedBy")
+  defaultAssignedForms LeadForm[] @relation("LeadFormDefaultManager")
   createdInvitations   Invitation[] @relation("InvitationCreatedBy")
   activities           Activity[] @relation("ActivityActor")
   notifications        Notification[]
@@ -186,6 +187,7 @@ model Invitation {
   token          String    @unique
   expiresAt      DateTime
   acceptedAt     DateTime?
+  revokedAt      DateTime?
   createdBy      String
   createdAt      DateTime  @default(now())
 
@@ -319,25 +321,31 @@ model LeadNote {
 }
 
 model LeadForm {
-  id             String         @id @default(cuid(2)) @map("_id")
-  organizationId String
-  name           String
-  slug           String
-  description    String?
-  status         LeadFormStatus @default(DRAFT)
-  createdBy      String
-  updatedBy      String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id                       String         @id @default(cuid(2)) @map("_id")
+  organizationId           String
+  name                     String
+  slug                     String
+  description              String?
+  status                   LeadFormStatus @default(DRAFT)
+  fields                   Json
+  defaultAssignedManagerId String?
+  successMessage           String?
+  allowIndexing            Boolean        @default(false)
+  createdBy                String
+  updatedBy                String?
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
 
-  organization Organization       @relation(fields: [organizationId], references: [id])
-  creator      OrganizationMember @relation("LeadFormCreatedBy", fields: [createdBy], references: [id])
-  updater      OrganizationMember? @relation("LeadFormUpdatedBy", fields: [updatedBy], references: [id])
-  submissions  FormSubmission[]
+  organization           Organization        @relation(fields: [organizationId], references: [id])
+  creator                OrganizationMember  @relation("LeadFormCreatedBy", fields: [createdBy], references: [id])
+  updater                OrganizationMember? @relation("LeadFormUpdatedBy", fields: [updatedBy], references: [id])
+  defaultAssignedManager OrganizationMember? @relation("LeadFormDefaultManager", fields: [defaultAssignedManagerId], references: [id])
+  submissions            FormSubmission[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
   @@index([createdBy])
+  @@index([defaultAssignedManagerId])
   @@map("lead_form")
 }
 

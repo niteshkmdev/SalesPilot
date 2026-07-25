@@ -10,7 +10,7 @@ import {
   type LeadSourceDto,
   type LeadStatusDto,
   resolveStatusColor,
-} from "@/server/dto/lead.dto";
+} from "@/modules/leads/dto/lead.dto";
 
 type LeadWithRelations = Lead & {
   status: OrganizationLeadStatus | null;
@@ -52,11 +52,22 @@ export function toLeadListItemDto(lead: LeadWithRelations): LeadListItemDto {
     assignedMember: lead.assignedMember
       ? { id: lead.assignedMember.id, name: lead.assignedMember.user.name }
       : null,
+    assignedMemberId: lead.assignedMemberId,
+    assignedManager: lead.assignedManager
+      ? { id: lead.assignedManager.id, name: lead.assignedManager.user.name }
+      : null,
+    assignedManagerId: lead.assignedManagerId,
+    createdBy: lead.createdBy,
+    isDuplicate: lead.isDuplicate,
     createdAt: lead.createdAt.toISOString(),
+    updatedAt: lead.updatedAt.toISOString(),
   };
 }
 
-export function toLeadDetailDto(lead: LeadWithRelations): LeadDetailDto {
+export function toLeadDetailDto(
+  lead: LeadWithRelations,
+  customValues: LeadDetailDto["customValues"] = [],
+): LeadDetailDto {
   return {
     ...toLeadListItemDto(lead),
     organizationId: lead.organizationId,
@@ -64,9 +75,6 @@ export function toLeadDetailDto(lead: LeadWithRelations): LeadDetailDto {
     sourceId: lead.sourceId,
     website: lead.website,
     description: lead.description,
-    assignedManager: lead.assignedManager
-      ? { id: lead.assignedManager.id, name: lead.assignedManager.user.name }
-      : null,
-    updatedAt: lead.updatedAt.toISOString(),
+    customValues,
   };
 }

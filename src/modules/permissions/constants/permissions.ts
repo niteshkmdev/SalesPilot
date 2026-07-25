@@ -15,6 +15,8 @@ export const Permissions = {
   LEAD_UPDATE: "lead.update",
   LEAD_DELETE: "lead.delete",
   LEAD_ASSIGN: "lead.assign",
+  CUSTOM_FIELD_READ: "customfield.read",
+  CUSTOM_FIELD_MANAGE: "customfield.manage",
   FORM_READ: "form.read",
   FORM_CREATE: "form.create",
   FORM_UPDATE: "form.update",
@@ -115,6 +117,16 @@ export const permissionDefinitions: PermissionDefinition[] = [
     name: Permissions.LEAD_ASSIGN,
     description: "Assign leads to members.",
     group: "Leads",
+  },
+  {
+    name: Permissions.CUSTOM_FIELD_READ,
+    description: "View custom field definitions.",
+    group: "Custom Fields",
+  },
+  {
+    name: Permissions.CUSTOM_FIELD_MANAGE,
+    description: "Create, update, reorder, and deactivate custom fields.",
+    group: "Custom Fields",
   },
   {
     name: Permissions.FORM_READ,

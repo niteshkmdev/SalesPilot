@@ -13,8 +13,8 @@ Build the core lead management slice including CRUD, assignment, status/source h
 
 ## Current Status
 
-- Overall status: `[~]` In progress
-- Current task: Lead CRUD UI polished with DTO mapping, list filters (search/status/source), and create/view/edit wired. Assignment UI still deferred.
+- Overall status: `[x]` Complete
+- Current task: Plan 06 closed — domain in `src/modules/leads/`, permission authz, assignment UI, expanded filters, pagination/sorting, soft-delete UI, duplicate-flag foundations, unit tests.
 - Dependency: `05-members-roles-settings`
 - Next prompt after completion: `prompt/07-dashboard-v1.md`
 
@@ -30,6 +30,12 @@ Build the core lead management slice including CRUD, assignment, status/source h
 - `[x]` Implement `/leads/new` form.
 - `[x]` Implement `/leads/[id]` detail view.
 - `[x]` Ensure organizations have default Statuses/Sources upon creation.
+- `[x]` Move lead domain into `src/modules/leads/` (Plan 01 debt).
+- `[x]` Replace role-string authz with `Permissions.LEAD_*`.
+- `[x]` Use `requireAppContext` + `AppError` envelopes in lead actions.
+- `[x]` Assignment UI (form selects + detail dialog).
+- `[x]` Expanded filters, pagination, sorting, soft-delete UI, duplicate foundations.
+- `[x]` Unit tests for authz, assign, filters, duplicate flag.
 - `[x]` Update `PROJECT_TRACKER.md` on completion.
 
 ## Implementation Rules
@@ -40,12 +46,13 @@ Build the core lead management slice including CRUD, assignment, status/source h
 
 ## Foundation debt (from Plan 01 re-audit)
 
-- Move lead service/repo/DTO from `src/server/{services,repositories,dto}` into `src/modules/leads/`.
-- Replace role-name authz (`"Owner"`, `"Admin"`) with `Permissions.*` + `createAuthorizationService`.
-- Use `requireAppContext` and `src/shared/api` envelopes in lead actions instead of ad-hoc `{ success }` / raw Prisma session lookups.
-- Finish assignment UI.
+- `[x]` Move lead service/repo/DTO from `src/server/{services,repositories,dto}` into `src/modules/leads/`.
+- `[x]` Replace role-name authz (`"Owner"`, `"Admin"`) with `Permissions.*` + `createAuthorizationService`.
+- `[x]` Use `requireAppContext` and `src/shared/api` envelopes in lead actions instead of ad-hoc `{ success }` / raw Prisma session lookups.
+- `[x]` Finish assignment UI.
 
 ## UI-first carve-out note (Plan 02)
 
 - Live dashboard metrics/notifications widgets are Plan 07 (dashboard page still shows sample data by design).
 - Public lead forms are Plan 09; notifications page is Plan 12.
+- Activity timeline, rich notes, attachments, merge wizard, Atlas Search, bulk actions, and REST `/api/leads/*` remain later plans.

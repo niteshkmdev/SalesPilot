@@ -40,8 +40,16 @@ vi.mock("@/modules/organizations/repository/role.repository", () => ({
   createRolePermissions: mocks.createRolePermissions,
 }));
 
+vi.mock("@/modules/organizations/services/role-seed.service", () => ({
+  ensureDefaultRoles: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock("@/modules/organizations/repository/member.repository", () => ({
   createMember: mocks.createMember,
+}));
+
+vi.mock("@/modules/organizations/services/role-seed.service", () => ({
+  ensureDefaultRoles: vi.fn().mockResolvedValue([]),
 }));
 
 describe("provisionOrganizationForUser", () => {

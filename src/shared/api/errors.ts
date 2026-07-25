@@ -54,3 +54,15 @@ export function permissionDenied(): AppError {
     403,
   );
 }
+
+export function notFound(message = "Resource not found."): AppError {
+  return new AppError(ApiErrorCode.NOT_FOUND, message, 404);
+}
+
+export function conflict(message: string): AppError {
+  return new AppError(ApiErrorCode.CONFLICT, message, 409);
+}
+
+export function validationFailed(message: string): AppError {
+  return new AppError(ApiErrorCode.VALIDATION_FAILED, message, 400);
+}

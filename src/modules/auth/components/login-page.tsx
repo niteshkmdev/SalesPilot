@@ -18,12 +18,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 
-export function LoginPage() {
+interface LoginPageProps {
+  inviteToken?: string;
+}
+
+export function LoginPage({ inviteToken }: LoginPageProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const postAuthPath = inviteToken
+    ? `/invite/${encodeURIComponent(inviteToken)}`
+    : "/dashboard";
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +47,7 @@ export function LoginPage() {
         toast.error(error.message || "Failed to sign in");
       } else {
         toast.success("Successfully signed in");
-        router.push("/dashboard");
+        router.push(postAuthPath);
         router.refresh();
       }
     } catch (_err) {
@@ -54,7 +62,7 @@ export function LoginPage() {
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: postAuthPath,
       });
 
       if (error) {
@@ -156,7 +164,14 @@ export function LoginPage() {
       <CardFooter className="flex flex-col space-y-4">
         <div className="text-center text-sm text-muted-foreground">
           Don't have an account?{" "}
-          <Link href="/signup" className="text-primary hover:underline">
+          <Link
+            href={
+              inviteToken
+                ? `/signup?token=${encodeURIComponent(inviteToken)}`
+                : "/signup"
+            }
+            className="text-primary hover:underline"
+          >
             Sign up
           </Link>
         </div>
