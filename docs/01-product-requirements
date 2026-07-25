@@ -1,0 +1,783 @@
+# docs/01-product-requirements.md
+
+# Product Requirements Document (PRD)
+
+Project: SalesPilot
+
+Version: 1.0
+
+Status: Approved
+
+---
+
+# Purpose
+
+This document defines every functional requirement of SalesPilot.
+
+It acts as the single source of truth for product behavior.
+
+All implementation decisions should reference this document before code is written.
+
+When implementation and this document disagree, this document takes precedence.
+
+---
+
+# Product Summary
+
+SalesPilot is a Lead Management SaaS that enables organizations to:
+
+- Capture leads
+- Organize leads
+- Assign leads
+- Track lead progress
+- Collaborate through notes and activities
+- Build multiple public forms
+- Manage sales teams
+
+The application focuses on simplicity, speed and maintainability.
+
+It is **not** intended to become a complete CRM platform.
+
+---
+
+# Product Goals
+
+The product should help organizations:
+
+• Capture leads quickly
+
+• Reduce manual lead assignment
+
+• Track the complete lifecycle of every lead
+
+• Prevent lost leads
+
+• Detect duplicates
+
+• Organize sales teams
+
+• Provide accountability through activity history
+
+---
+
+# Success Metrics
+
+A successful implementation should allow a reviewer to:
+
+✓ Register
+
+✓ Login
+
+✓ Access dashboard
+
+✓ Create members
+
+✓ Create lead forms
+
+✓ Submit public forms
+
+✓ Automatically create leads
+
+✓ Assign leads
+
+✓ Update lead status
+
+✓ Search leads
+
+✓ Merge duplicates
+
+✓ Upload attachments
+
+✓ Receive notifications
+
+without encountering incomplete functionality.
+
+---
+
+# User Roles
+
+SalesPilot supports four roles.
+
+## Owner
+
+Highest privilege.
+
+Responsibilities
+
+- Manage organization
+- Invite members
+- Manage branding
+- Manage forms
+- Manage settings
+- Remove any member
+- Access every lead
+
+Exactly one Owner exists per organization.
+
+Future architecture supports ownership transfer.
+
+Current implementation does not.
+
+---
+
+## Admin
+
+Administrative role.
+
+Can
+
+- Invite users
+- Remove Managers
+- Remove Members
+- Create forms
+- Manage leads
+- Configure branding
+- Configure custom fields
+
+Cannot
+
+- Remove Owner
+
+---
+
+## Manager
+
+Responsible for a sales team.
+
+Can
+
+- View team leads
+- Assign leads to members
+- Update leads
+- Merge duplicates
+- View dashboard
+- Create notes
+
+Cannot
+
+- Remove Admin
+- Access organization settings
+
+---
+
+## Member
+
+Lowest role.
+
+Can
+
+- View assigned leads
+- Update assigned leads
+- Add notes
+- Upload attachments
+
+Cannot
+
+- Invite users
+- Assign leads outside themselves
+- Manage forms
+- Manage organization
+
+---
+
+# Authentication
+
+Authentication methods
+
+✓ Email + Password
+
+✓ Google OAuth
+
+Invitation supports both.
+
+---
+
+# Account Linking
+
+If an existing password account attempts Google login:
+
+1. Detect existing account.
+
+2. Ask for password.
+
+3. Verify password.
+
+4. Link Google account.
+
+5. Create session.
+
+Never automatically link accounts.
+
+---
+
+# Organizations
+
+Every user belongs to organizations through OrganizationMembership.
+
+Current product exposes one seeded organization.
+
+Architecture supports multiple organizations.
+
+No organization switching UI exists.
+
+---
+
+# Invitations
+
+Admins and Owners can invite users.
+
+Invitation contains:
+
+- email
+- role
+- expiration
+- secure token
+
+Invitee may
+
+- Create password
+
+or
+
+- Continue with Google
+
+Invited users are automatically email verified.
+
+---
+
+# Dashboard
+
+Dashboard is personalized by role.
+
+Owner/Admin
+
+Organization-wide metrics.
+
+Manager
+
+Team metrics.
+
+Member
+
+Personal metrics.
+
+Default range:
+
+This Month.
+
+Widgets include:
+
+- Total Leads
+- Open Leads
+- Won Leads
+- Lost Leads
+- Conversion Rate
+- Recent Activity
+- Notifications
+- Lead Status Chart
+- Leads by Source
+
+---
+
+# Lead Lifecycle
+
+Lead statuses are static.
+
+Initial implementation includes:
+
+New
+
+Contacted
+
+Qualified
+
+Proposal Sent
+
+Negotiation
+
+Won
+
+Lost
+
+Future versions may allow customization.
+
+---
+
+# Lead Management
+
+Every lead contains:
+
+Basic Information
+
+Assignment
+
+Custom Fields
+
+Attachments
+
+Notes
+
+Activities
+
+Status
+
+Source
+
+Created Date
+
+Updated Date
+
+Soft Delete State
+
+---
+
+# Lead Assignment
+
+Leads may be assigned to:
+
+Manager
+
+or
+
+Member
+
+Assignment automatically creates Activity.
+
+Assignment automatically creates Notification.
+
+---
+
+# Duplicate Detection
+
+Duplicate detection is based on configurable fields.
+
+Default:
+
+- Email
+- Phone
+
+Public form submissions are never rejected.
+
+Instead:
+
+Lead is created.
+
+Duplicate indicator is displayed.
+
+---
+
+# Duplicate Merge
+
+Users with permission may merge duplicates.
+
+Merge Flow
+
+1. Select two leads.
+
+2. Open merge wizard.
+
+3. Choose value for every field.
+
+4. System creates merged lead.
+
+5. Original leads become soft deleted.
+
+Activity created:
+
+"Lead merged from Lead A and Lead B."
+
+Original activities remain preserved.
+
+---
+
+# Public Lead Forms
+
+Organizations can create multiple forms.
+
+Each form contains:
+
+Name
+
+Slug
+
+Description
+
+Fields
+
+Manager Assignment
+
+Branding
+
+Status
+
+---
+
+# Form Status
+
+Draft
+
+Published
+
+Archived
+
+Draft
+
+Accessible only to authenticated users.
+
+Acts as Preview Mode.
+
+Published
+
+Publicly accessible.
+
+Archived
+
+Returns HTTP 404 for public visitors.
+
+Authenticated users may still preview.
+
+---
+
+# Form URLs
+
+Forms are organization scoped.
+
+Pattern
+
+/org/{organizationSlug}/forms/{formSlug}
+
+This prevents conflicts between organizations.
+
+---
+
+# Form Submission
+
+Submitting a form immediately creates:
+
+Lead
+
+Activity
+
+Notification
+
+No moderation queue exists.
+
+---
+
+# Custom Fields
+
+Organizations define custom fields.
+
+Supported Types
+
+Text
+
+Textarea
+
+Email
+
+Phone
+
+Number
+
+Fields are stored as JSON on the Lead.
+
+Future field types may be added.
+
+---
+
+# Notes
+
+Every lead supports notes.
+
+Notes use MDX editor.
+
+Notes support:
+
+Formatting
+
+Lists
+
+Links
+
+Images
+
+Attachments
+
+Mentions are out of scope.
+
+Threaded comments are out of scope.
+
+---
+
+# Attachments
+
+Attachments belong to Leads.
+
+Stored in S3-compatible storage.
+
+Bucket configuration via environment variables.
+
+Supported upload locations:
+
+Lead
+
+Notes
+
+---
+
+# Search
+
+Global search includes:
+
+Lead Name
+
+Company
+
+Email
+
+Phone
+
+Custom Fields
+
+Uses MongoDB Atlas Search when available.
+
+Fallback:
+
+Regex search.
+
+---
+
+# Notifications
+
+In-app notifications only.
+
+No email notifications.
+
+Examples
+
+Lead Assigned
+
+Lead Updated
+
+Member Invited
+
+Role Changed
+
+Lead Merged
+
+Notifications support:
+
+Unread
+
+Read
+
+Archive
+
+---
+
+# Branding
+
+Organizations may customize:
+
+Logo
+
+Primary Color
+
+Secondary Color
+
+Accent Color
+
+Public Forms
+
+Public Landing Elements
+
+Dashboard branding remains SalesPilot.
+
+Footer displays:
+
+Powered by SalesPilot
+
+---
+
+# Settings
+
+Initial Settings Modules
+
+General
+
+Members
+
+Roles
+
+Lead Forms
+
+Custom Fields
+
+Branding
+
+Profile
+
+Excluded
+
+API Keys
+
+Webhooks
+
+Audit Logs
+
+Billing
+
+---
+
+# Activity Timeline
+
+Every significant event creates immutable activity.
+
+Activities cannot be edited.
+
+Activities cannot be deleted.
+
+Examples
+
+Lead Created
+
+Lead Assigned
+
+Lead Updated
+
+Lead Status Changed
+
+Lead Merged
+
+Attachment Uploaded
+
+Member Invited
+
+Member Removed
+
+Role Updated
+
+---
+
+# Soft Delete Behavior
+
+Deleted entities remain in database.
+
+Hidden from normal application queries.
+
+May be restored in future versions.
+
+Permanent deletion is out of scope.
+
+---
+
+# Mobile Experience
+
+Entire application is responsive.
+
+No desktop-only functionality.
+
+Forms should be optimized for mobile.
+
+Dashboard should adapt gracefully.
+
+Tables should collapse appropriately.
+
+---
+
+# Accessibility Requirements
+
+Keyboard accessible
+
+Focus indicators
+
+ARIA labels
+
+Screen reader compatibility
+
+Proper heading hierarchy
+
+Contrast ratio WCAG AA
+
+---
+
+# Error Handling
+
+Every operation must provide:
+
+Loading State
+
+Success State
+
+Error State
+
+Retry State
+
+Validation Feedback
+
+Never expose raw server errors.
+
+---
+
+# Out of Scope
+
+The following are intentionally excluded.
+
+Workflow Automation
+
+AI Features
+
+Email Campaigns
+
+Calling
+
+SMS
+
+Calendar
+
+CRM Pipelines
+
+Billing
+
+Subscription Management
+
+Organization Switching
+
+Public APIs
+
+Webhooks
+
+Marketplace
+
+Plugin System
+
+---
+
+# Acceptance Criteria
+
+The product is considered complete when:
+
+✓ Every module functions end-to-end.
+
+✓ Every permission is enforced server-side.
+
+✓ Every mutation creates activity.
+
+✓ Every form validates correctly.
+
+✓ Every page is responsive.
+
+✓ Every API is documented.
+
+✓ Every database model supports future SaaS expansion.
+
+✓ No placeholder implementations remain.
+
+✓ No TODO comments remain in production code.
+
+✓ The application is deployable using documented environment variables.
+
+---
+
+End of Product Requirements Document

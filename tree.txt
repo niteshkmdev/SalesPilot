@@ -1,0 +1,57 @@
+.
+├── AGENTS.md
+├── biome.json
+├── CLAUDE.md
+├── docs
+│   ├── 00-project-overview.md
+│   ├── 01-product-requirements
+│   ├── 02-architecture.md
+│   ├── 03-folder-structure.md
+│   ├── 04-tech-stack.md
+│   ├── 05-design-system.md
+│   ├── 06-database-schema.md
+│   ├── 07-authentication.md
+│   ├── 08-rbac.md
+│   ├── 09-api-specification.md
+│   ├── 10-landing-page.md
+│   ├── 11-onboarding.md
+│   ├── 12-dashboard.md
+│   ├── 13-leads.md
+│   ├── 14-lead-forms.md
+│   ├── 15-custom-fields.md
+│   ├── 16-notifications.md
+│   ├── 17-search.md
+│   ├── 18-storage.md
+│   ├── 19-activity.md
+│   ├── 20-dashboard.md
+│   ├── 21-rbac-implementation.md
+│   ├── 22-authentication-implementation.md
+│   ├── 23-organizations-multi-tenancy.md
+│   ├── 24-api-standards.md
+│   ├── 25-database-schema.md
+│   ├── 26-testing-strategy.md
+│   ├── 27-deployment-infrastructure.md
+│   ├── 28-coding-standards.md
+│   └── 29-roadmap-future-enhancements.md
+├── next.config.ts
+├── next-env.d.ts
+├── package.json
+├── package-lock.json
+├── postcss.config.mjs
+├── public
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── README.md
+├── src
+│   └── app
+│       ├── favicon.ico
+│       ├── globals.css
+│       ├── layout.tsx
+│       └── page.tsx
+├── tree.txt
+└── tsconfig.json
+
+5 directories, 50 files
