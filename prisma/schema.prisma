@@ -2,12 +2,12 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 // ---------------------------------------------------------------------------
@@ -26,6 +26,7 @@ model User {
 
   sessions Session[]
   accounts Account[]
+  organizationMembers OrganizationMember[]
 
   @@map("user")
 }
@@ -72,4 +73,406 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@map("verification")
+}
+
+// ---------------------------------------------------------------------------
+// SalesPilot business models
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id        String   @id @default(cuid(2)) @map("_id")
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members    OrganizationMember[]
+  roles      Role[]
+  invitations Invitation[]
+  leads      Lead[]
+  statuses   OrganizationLeadStatus[]
+  sources    OrganizationLeadSource[]
+  attachments LeadAttachment[]
+  notes      LeadNote[]
+  forms      LeadForm[]
+  submissions FormSubmission[]
+  customFields CustomField[]
+  activities Activity[]
+  notifications Notification[]
+  branding   Branding?
+
+  @@map("organization")
+}
+
+model OrganizationMember {
+  id             String   @id @default(cuid(2)) @map("_id")
+  organizationId String
+  userId         String   @db.ObjectId
+  roleId         String
+  isOwner        Boolean  @default(false)
+  joinedAt       DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id])
+
+  assignedManagedLeads Lead[] @relation("LeadAssignedManager")
+  assignedMemberLeads  Lead[] @relation("LeadAssignedMember")
+  createdLeads         Lead[] @relation("LeadCreatedBy")
+  updatedLeads         Lead[] @relation("LeadUpdatedBy")
+  uploadedAttachments  LeadAttachment[] @relation("AttachmentUploadedBy")
+  createdNotes         LeadNote[] @relation("LeadNoteCreatedBy")
+  createdForms         LeadForm[] @relation("LeadFormCreatedBy")
+  updatedForms         LeadForm[] @relation("LeadFormUpdatedBy")
+  createdInvitations   Invitation[] @relation("InvitationCreatedBy")
+  activities           Activity[] @relation("ActivityActor")
+  notifications        Notification[]
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("organization_member")
+}
+
+model Role {
+  id             String   @id @default(cuid(2)) @map("_id")
+  organizationId String
+  name           String
+  description    String?
+  createdAt      DateTime @default(now())
+
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  members         OrganizationMember[]
+  rolePermissions RolePermission[]
+  invitations     Invitation[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("role")
+}
+
+model Permission {
+  id          String @id @default(cuid(2)) @map("_id")
+  name        String @unique
+  description String?
+  group       String
+
+  rolePermissions RolePermission[]
+
+  @@index([group])
+  @@map("permission")
+}
+
+model RolePermission {
+  id           String @id @default(cuid(2)) @map("_id")
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permission")
+}
+
+model Invitation {
+  id             String    @id @default(cuid(2)) @map("_id")
+  organizationId String
+  email          String
+  roleId         String
+  token          String    @unique
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdBy      String
+  createdAt      DateTime  @default(now())
+
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  role         Role               @relation(fields: [roleId], references: [id])
+  creator      OrganizationMember @relation("InvitationCreatedBy", fields: [createdBy], references: [id])
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([roleId])
+  @@index([createdBy])
+  @@map("invitation")
+}
+
+model Lead {
+  id                String    @id @default(cuid(2)) @map("_id")
+  organizationId    String
+  statusId          String
+  sourceId          String?
+  assignedManagerId String?
+  assignedMemberId  String?
+  firstName         String
+  lastName          String
+  email             String?
+  phone             String?
+  company           String?
+  jobTitle          String?
+  website           String?
+  description       String?
+  isDuplicate       Boolean   @default(false)
+  deletedAt         DateTime?
+  createdBy         String
+  updatedBy         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  organization    Organization              @relation(fields: [organizationId], references: [id])
+  status          OrganizationLeadStatus    @relation(fields: [statusId], references: [id])
+  source          OrganizationLeadSource?   @relation(fields: [sourceId], references: [id])
+  assignedManager OrganizationMember?       @relation("LeadAssignedManager", fields: [assignedManagerId], references: [id])
+  assignedMember  OrganizationMember?       @relation("LeadAssignedMember", fields: [assignedMemberId], references: [id])
+  creator         OrganizationMember        @relation("LeadCreatedBy", fields: [createdBy], references: [id])
+  updater         OrganizationMember?       @relation("LeadUpdatedBy", fields: [updatedBy], references: [id])
+  attachments     LeadAttachment[]
+  notes           LeadNote[]
+  submissions     FormSubmission[]
+  customValues    LeadCustomFieldValue[]
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([phone])
+  @@index([statusId])
+  @@index([assignedMemberId])
+  @@index([createdAt])
+  @@map("lead")
+}
+
+model OrganizationLeadStatus {
+  id             String  @id @default(cuid(2)) @map("_id")
+  organizationId String
+  name           String
+  color          String
+  displayOrder   Int
+  isDefault      Boolean @default(false)
+  isClosed       Boolean @default(false)
+  isWon          Boolean @default(false)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  leads        Lead[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([displayOrder])
+  @@map("organization_lead_status")
+}
+
+model OrganizationLeadSource {
+  id             String  @id @default(cuid(2)) @map("_id")
+  organizationId String
+  name           String
+  displayOrder   Int
+  active         Boolean @default(true)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  leads        Lead[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([displayOrder])
+  @@map("organization_lead_source")
+}
+
+model LeadAttachment {
+  id             String   @id @default(cuid(2)) @map("_id")
+  organizationId String
+  leadId         String
+  fileName       String
+  storageKey     String
+  contentType    String
+  size           Int
+  uploadedBy     String
+  createdAt      DateTime @default(now())
+
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  lead         Lead               @relation(fields: [leadId], references: [id])
+  uploader     OrganizationMember @relation("AttachmentUploadedBy", fields: [uploadedBy], references: [id])
+
+  @@index([organizationId])
+  @@index([leadId])
+  @@index([uploadedBy])
+  @@map("lead_attachment")
+}
+
+model LeadNote {
+  id             String   @id @default(cuid(2)) @map("_id")
+  organizationId String
+  leadId         String
+  content        String
+  createdBy      String
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  lead         Lead               @relation(fields: [leadId], references: [id])
+  creator      OrganizationMember @relation("LeadNoteCreatedBy", fields: [createdBy], references: [id])
+
+  @@index([organizationId])
+  @@index([leadId])
+  @@index([createdBy])
+  @@map("lead_note")
+}
+
+model LeadForm {
+  id             String         @id @default(cuid(2)) @map("_id")
+  organizationId String
+  name           String
+  slug           String
+  description    String?
+  status         LeadFormStatus @default(DRAFT)
+  createdBy      String
+  updatedBy      String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  creator      OrganizationMember @relation("LeadFormCreatedBy", fields: [createdBy], references: [id])
+  updater      OrganizationMember? @relation("LeadFormUpdatedBy", fields: [updatedBy], references: [id])
+  submissions  FormSubmission[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([createdBy])
+  @@map("lead_form")
+}
+
+model FormSubmission {
+  id             String   @id @default(cuid(2)) @map("_id")
+  organizationId String
+  leadFormId     String
+  leadId         String
+  payload        Json
+  ipAddress      String?
+  userAgent      String?
+  submittedAt    DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  leadForm     LeadForm     @relation(fields: [leadFormId], references: [id])
+  lead         Lead         @relation(fields: [leadId], references: [id])
+
+  @@index([organizationId])
+  @@index([leadFormId])
+  @@index([leadId])
+  @@index([submittedAt])
+  @@map("form_submission")
+}
+
+model CustomField {
+  id             String          @id @default(cuid(2)) @map("_id")
+  organizationId String
+  name           String
+  slug           String
+  type           CustomFieldType
+  required       Boolean         @default(false)
+  placeholder    String?
+  helpText       String?
+  defaultValue   Json?
+  displayOrder   Int
+  active         Boolean         @default(true)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  values       LeadCustomFieldValue[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([displayOrder])
+  @@map("custom_field")
+}
+
+model LeadCustomFieldValue {
+  id      String @id @default(cuid(2)) @map("_id")
+  leadId  String
+  fieldId String
+  value   Json
+
+  lead  Lead        @relation(fields: [leadId], references: [id])
+  field CustomField @relation(fields: [fieldId], references: [id])
+
+  @@unique([leadId, fieldId])
+  @@index([leadId])
+  @@index([fieldId])
+  @@map("lead_custom_field_value")
+}
+
+model Activity {
+  id             String   @id @default(cuid(2)) @map("_id")
+  organizationId String
+  actorId        String?
+  entityType     String
+  entityId       String
+  action         String
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization        @relation(fields: [organizationId], references: [id])
+  actor        OrganizationMember? @relation("ActivityActor", fields: [actorId], references: [id])
+
+  @@index([organizationId])
+  @@index([entityId])
+  @@index([createdAt])
+  @@map("activity")
+}
+
+model Notification {
+  id             String           @id @default(cuid(2)) @map("_id")
+  organizationId String
+  memberId       String
+  type           NotificationType
+  title          String
+  message        String
+  metadata       Json?
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  member       OrganizationMember @relation(fields: [memberId], references: [id])
+
+  @@index([organizationId])
+  @@index([memberId, readAt])
+  @@index([createdAt])
+  @@map("notification")
+}
+
+model Branding {
+  id             String   @id @default(cuid(2)) @map("_id")
+  organizationId String   @unique
+  logo           String?
+  primaryColor   String?
+  secondaryColor String?
+  accentColor    String?
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("branding")
+}
+
+enum LeadFormStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CustomFieldType {
+  TEXT
+  TEXTAREA
+  EMAIL
+  PHONE
+  NUMBER
+  DATE
+  SELECT
+  CHECKBOX
+}
+
+enum NotificationType {
+  LEAD_ASSIGNED
+  LEAD_UPDATED
+  FORM_SUBMITTED
+  MEMBER_INVITED
+  SYSTEM
 }

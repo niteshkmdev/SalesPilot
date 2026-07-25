@@ -13,76 +13,76 @@ Build the SalesPilot foundation required before feature UI work: documented data
 
 ## Current Status
 
-- Overall status: `[~]` In progress
-- Current task: Read all numbered docs in `docs/` before implementation.
+- Overall status: `[x]` Complete
+- Current task: Complete. Next action is to start `02-auth-onboarding` from `prompt/02-auth-onboarding.md`.
 - Dependency: None
 - Next prompt after completion: `prompt/02-auth-onboarding.md`
 
 ## Required Docs
 
-- `[~]` `docs/00-project-overview.md`
-- `[~]` `docs/01-product-requirements`
-- `[~]` `docs/02-architecture.md`
-- `[~]` `docs/03-folder-structure.md`
-- `[~]` `docs/04-tech-stack.md`
-- `[~]` `docs/05-design-system.md`
-- `[~]` `docs/06-database-schema.md`
-- `[~]` `docs/07-authentication.md`
-- `[~]` `docs/08-rbac.md`
-- `[~]` `docs/09-api-specification.md`
-- `[~]` `docs/10-landing-page.md`
-- `[~]` `docs/11-onboarding.md`
-- `[~]` `docs/12-dashboard.md`
-- `[~]` `docs/13-leads.md`
-- `[~]` `docs/14-lead-forms.md`
+- `[x]` `docs/00-project-overview.md`
+- `[x]` `docs/01-product-requirements`
+- `[x]` `docs/02-architecture.md`
+- `[x]` `docs/03-folder-structure.md`
+- `[x]` `docs/04-tech-stack.md`
+- `[x]` `docs/05-design-system.md`
+- `[x]` `docs/06-database-schema.md`
+- `[x]` `docs/07-authentication.md`
+- `[x]` `docs/08-rbac.md`
+- `[x]` `docs/09-api-specification.md`
+- `[x]` `docs/10-landing-page.md`
+- `[x]` `docs/11-onboarding.md`
+- `[x]` `docs/12-dashboard.md`
+- `[x]` `docs/13-leads.md`
+- `[x]` `docs/14-lead-forms.md`
 - `[!]` `docs/15-custom-fields.md` is empty; use database/API docs and existing implementation until this doc is populated.
-- `[~]` `docs/16-notifications.md`
-- `[~]` `docs/17-search.md`
-- `[~]` `docs/18-storage.md`
-- `[~]` `docs/19-activity.md`
-- `[~]` `docs/20-dashboard.md`
-- `[~]` `docs/21-rbac-implementation.md`
-- `[~]` `docs/22-authentication-implementation.md`
-- `[~]` `docs/23-organizations-multi-tenancy.md`
-- `[~]` `docs/24-api-standards.md`
-- `[~]` `docs/25-database-schema.md`
-- `[~]` `docs/26-testing-strategy.md`
-- `[~]` `docs/27-deployment-infrastructure.md`
-- `[~]` `docs/28-coding-standards.md`
-- `[~]` `docs/29-roadmap-future-enhancements.md`
-- `[ ]` Relevant Next.js docs in `node_modules/next/dist/docs/` before adding routes, middleware, or framework-specific behavior.
+- `[x]` `docs/16-notifications.md`
+- `[x]` `docs/17-search.md`
+- `[x]` `docs/18-storage.md`
+- `[x]` `docs/19-activity.md`
+- `[x]` `docs/20-dashboard.md`
+- `[x]` `docs/21-rbac-implementation.md`
+- `[x]` `docs/22-authentication-implementation.md`
+- `[x]` `docs/23-organizations-multi-tenancy.md`
+- `[x]` `docs/24-api-standards.md`
+- `[x]` `docs/25-database-schema.md`
+- `[x]` `docs/26-testing-strategy.md`
+- `[x]` `docs/27-deployment-infrastructure.md`
+- `[x]` `docs/28-coding-standards.md`
+- `[x]` `docs/29-roadmap-future-enhancements.md`
+- `[x]` Relevant Next.js docs in `node_modules/next/dist/docs/` before framework-specific behavior.
 
 ## Task Checklist
 
-- `[~]` Read all numbered docs in `docs/`.
-- `[ ]` Read relevant installed Next.js docs before route or middleware work.
-- `[ ]` Expand `prisma/schema.prisma` with documented business models.
-- `[ ]` Keep Better Auth generated models unchanged unless required.
-- `[ ]` Use `cuid(2)` IDs for new business collections.
-- `[ ]` Add central permission registry using `resource.action` names.
-- `[ ]` Add organization provisioning service for first verified user setup.
-- `[ ]` Add organization repository with tenant-safe persistence methods.
-- `[ ]` Add member repository and role/permission repositories.
-- `[ ]` Add seeded defaults for permissions, owner role, lead statuses, lead sources, and branding.
-- `[ ]` Add Auth Service wrapper around Better Auth.
-- `[ ]` Add app-context resolver for user, organization, member, and permissions.
-- `[ ]` Add Authorization Service with `can`, `canAll`, and `canAny`.
-- `[ ]` Add standard API success and error envelope helpers.
-- `[ ]` Add validation error mapping for Zod errors.
-- `[ ]` Add DTO mappers so Prisma models never leave repositories.
-- `[ ]` Add Vitest configuration and test scripts.
-- `[ ]` Add focused unit tests for auth context, authorization, API helpers, and provisioning.
-- `[ ]` Update `PROJECT_TRACKER.md` after each meaningful task.
-- `[ ]` Mark this plan complete in `PROJECT_TRACKER.md`.
-- `[ ]` Open `prompt/02-auth-onboarding.md` to begin the next plan.
+- `[x]` Read all numbered docs in `docs/`.
+- `[x]` Read relevant installed Next.js docs before route or middleware work.
+- `[x]` Expand `prisma/schema.prisma` with documented business models.
+- `[x]` Keep Better Auth generated models unchanged unless required.
+- `[x]` Use `cuid(2)` IDs for new business collections.
+- `[x]` Add central permission registry using `resource.action` names.
+- `[x]` Add organization provisioning service for first verified user setup.
+- `[x]` Add organization repository with tenant-safe persistence methods.
+- `[x]` Add member repository and role/permission repositories.
+- `[x]` Add seeded defaults for permissions, owner role, lead statuses, lead sources, and branding.
+- `[x]` Add Auth Service wrapper around Better Auth.
+- `[x]` Add app-context resolver for user, organization, member, and permissions.
+- `[x]` Add Authorization Service with `can`, `canAll`, and `canAny`.
+- `[x]` Add standard API success and error envelope helpers.
+- `[x]` Add validation error mapping for Zod errors.
+- `[x]` Add DTO mappers so Prisma models never leave repositories.
+- `[x]` Add Vitest configuration and test scripts.
+- `[x]` Add focused unit tests for auth context, authorization, API helpers, and provisioning.
+- `[x]` Update `PROJECT_TRACKER.md` after each meaningful task.
+- `[x]` Mark this plan complete in `PROJECT_TRACKER.md`.
+- `[x]` Open `prompt/02-auth-onboarding.md` to begin the next plan.
 
 ## Validation Checklist
 
-- `[ ]` Run `npx prisma validate`.
-- `[ ]` Regenerate Prisma client after schema changes.
-- `[ ]` Run `npm run lint`.
-- `[ ]` Run `npm run test`.
-- `[ ]` Run `npm run build`.
+- `[x]` Run `npx prisma validate`.
+- `[x]` Regenerate Prisma client after schema changes.
+- `[x]` Run `npm run lint`.
+- `[x]` Run `npm run test`.
+- `[x]` Run `npm run build`.
 
 ## Implementation Rules
 
@@ -99,12 +99,22 @@ Build the SalesPilot foundation required before feature UI work: documented data
 | Date | Agent | Update |
 |---|---|---|
 | 2026-07-25 | Codex | Created the core foundation tracking plan. Initial planning pass reviewed major docs, but future implementer must complete a deliberate doc pass before code changes. |
+| 2026-07-25 | Codex | Completed the core doc pass for this slice, expanded the Prisma schema with documented business collections, validated the schema, and regenerated the Prisma client. |
+| 2026-07-25 | Codex | Added core services, repositories, DTOs, permission registry, authorization service, and API response helpers. TypeScript passes with `npx tsc --noEmit`. |
+| 2026-07-25 | Codex | Added Vitest, configured unit tests, and verified `npm run test` passes. |
+| 2026-07-25 | Codex | Completed lint and production build validation. Fixed the root layout toaster placement so Sonner renders inside `<body>`. |
+| 2026-07-25 | Codex | Resolved Prisma v7 + MongoDB build incompatibility by using Prisma v6.19.3 and the `prisma-client-js` generator. |
+| 2026-07-25 | Codex | Marked the core foundation plan complete and opened `prompt/02-auth-onboarding.md` for the next slice. |
 
 ## Changed Files Log
 
 | Date | Files | Notes |
 |---|---|---|
 | 2026-07-25 | `PROJECT_TRACKER.md`, `plan/01-core-foundation.md`, `prompt/*.md` | Added persistent tracking and handoff prompts. |
+| 2026-07-25 | `prisma/schema.prisma`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml` | Added business schema models and generated Prisma Client with Prisma v6.19.3 for MongoDB support. |
+| 2026-07-25 | `src/modules/auth/*`, `src/modules/organizations/*`, `src/modules/permissions/*`, `src/shared/api/*`, `src/server/db/types.ts` | Added core foundation services, repositories, DTOs, and API helpers. |
+| 2026-07-25 | `package.json`, `pnpm-lock.yaml`, `vitest.config.ts`, `tests/unit/*` | Added Vitest tooling and focused unit tests. |
+| 2026-07-25 | `src/app/layout.tsx`, `src/components/ui/sonner.tsx` | Fixed hydration issue by ensuring the Sonner toaster renders inside `<body>`. |
 
 ## Blockers
 

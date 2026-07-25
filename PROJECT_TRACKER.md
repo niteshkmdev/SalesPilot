@@ -11,16 +11,16 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 
 ## Current State
 
-- Active plan: `01-core-foundation`
-- Current task: Read all numbered docs in `docs/` before core foundation implementation.
-- Next prompt after active plan: `prompt/02-auth-onboarding.md`
+- Active plan: None; `01-core-foundation` is complete.
+- Current task: Start `02-auth-onboarding` by creating `plan/02-auth-onboarding.md` from `prompt/02-auth-onboarding.md`.
+- Next prompt after active plan: `prompt/03-app-shell-navigation.md`
 - Last updated: 2026-07-25
 
 ## Plan Index
 
 | # | Status | Plan | Dependency | Plan File | Prompt File | Next Plan |
 |---|---|---|---|---|---|---|
-| 01 | `[~]` | Core Foundation | None | `plan/01-core-foundation.md` | `prompt/01-core-foundation.md` | 02 Auth & Onboarding |
+| 01 | `[x]` | Core Foundation | None | `plan/01-core-foundation.md` | `prompt/01-core-foundation.md` | 02 Auth & Onboarding |
 | 02 | `[ ]` | Auth & Onboarding | 01 Core Foundation | `plan/02-auth-onboarding.md` | `prompt/02-auth-onboarding.md` | 03 App Shell & Navigation |
 | 03 | `[ ]` | App Shell & Navigation | 02 Auth & Onboarding | `plan/03-app-shell-navigation.md` | `prompt/03-app-shell-navigation.md` | 04 Marketing Landing Page |
 | 04 | `[ ]` | Marketing Landing Page | 03 App Shell & Navigation | `plan/04-marketing-landing-page.md` | `prompt/04-marketing-landing-page.md` | 05 Members, Roles & Settings |
@@ -62,3 +62,9 @@ Every new agent must:
 | Date | Agent | Update |
 |---|---|---|
 | 2026-07-25 | Codex | Created root tracker structure and marked `01-core-foundation` as active. |
+| 2026-07-25 | Codex | Expanded the Prisma schema with core business models, validated it, and regenerated the Prisma client. |
+| 2026-07-25 | Codex | Added core permission registry, organization repositories, provisioning service, auth wrapper, app context resolver, authorization service, DTO mappers, and API helpers. |
+| 2026-07-25 | Codex | Added Vitest setup, package scripts, and focused unit tests. `npm run test` passes with 4 files and 7 tests. |
+| 2026-07-25 | Codex | Completed core validation: `npx prisma validate`, Prisma client generation, `npx tsc --noEmit`, `npm run lint`, `npm run test`, and `npm run build` pass. |
+| 2026-07-25 | Codex | Resolved the Prisma v7 + MongoDB build blocker by pinning Prisma packages to v6.19.3 and using `prisma-client-js`; fixed the root layout toaster hydration error. |
+| 2026-07-25 | Codex | Marked `01-core-foundation` complete. Next action is to open `prompt/02-auth-onboarding.md` and create `plan/02-auth-onboarding.md`. |
