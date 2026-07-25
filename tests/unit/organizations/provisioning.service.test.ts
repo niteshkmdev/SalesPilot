@@ -90,7 +90,7 @@ describe("provisionOrganizationForUser", () => {
 
     expect(mocks.createOrganization).toHaveBeenCalledWith(mocks.tx, {
       name: "Ada Lovelace's Organization",
-      slug: "ada-lovelace",
+      slug: "ada-lovelace-s-organization",
     });
     expect(mocks.createRole).toHaveBeenCalledWith(mocks.tx, {
       organizationId: "org_1",
@@ -126,6 +126,36 @@ describe("provisionOrganizationForUser", () => {
       id: "org_1",
       name: "Ada Lovelace's Organization",
       slug: "ada-lovelace",
+    });
+  });
+
+  it("uses an explicit organization name when provided", async () => {
+    const { provisionOrganizationForUser } = await import(
+      "@/modules/organizations/services/provisioning.service"
+    );
+    mocks.createOrganization.mockResolvedValue({
+      id: "org_2",
+      name: "Acme Inc",
+      slug: "acme-inc",
+      createdAt: new Date("2026-07-25T00:00:00.000Z"),
+      updatedAt: new Date("2026-07-25T00:00:00.000Z"),
+    });
+
+    const user = {
+      id: "user_1",
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      emailVerified: true,
+      image: null,
+    } satisfies ProvisionableUser;
+
+    await provisionOrganizationForUser(user, {
+      organizationName: "Acme Inc",
+    });
+
+    expect(mocks.createOrganization).toHaveBeenCalledWith(mocks.tx, {
+      name: "Acme Inc",
+      slug: "acme-inc",
     });
   });
 });

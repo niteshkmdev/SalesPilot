@@ -38,13 +38,17 @@ export type ProvisionableUser = Pick<
 
 export async function provisionOrganizationForUser(
   user: ProvisionableUser,
+  options?: { organizationName?: string },
 ): Promise<OrganizationContext> {
   return prisma.$transaction(async (tx) => {
     await upsertPermissions(tx, permissionDefinitions);
 
+    const organizationName =
+      options?.organizationName?.trim() || buildOrganizationName(user);
+
     const organization = await createOrganization(tx, {
-      name: buildOrganizationName(user),
-      slug: await buildUniqueOrganizationSlug(tx, user),
+      name: organizationName,
+      slug: await buildUniqueOrganizationSlug(tx, organizationName, user),
     });
 
     const ownerRole = await createRole(tx, {
@@ -107,10 +111,11 @@ function buildOrganizationName(user: ProvisionableUser): string {
 
 async function buildUniqueOrganizationSlug(
   tx: Prisma.TransactionClient,
+  organizationName: string,
   user: ProvisionableUser,
 ): Promise<string> {
   const baseSlug = slugify(
-    user.name || user.email.split("@")[0] || "workspace",
+    organizationName || user.name || user.email.split("@")[0] || "workspace",
   );
   let slug = baseSlug;
   let suffix = 1;

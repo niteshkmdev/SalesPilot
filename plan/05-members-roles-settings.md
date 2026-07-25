@@ -23,6 +23,7 @@ Build personal profile settings, member management, invitations, role assignment
 - Invite Member button is disabled; no invitation create/redeem flow yet.
 - Organization settings form is read-only; updates deferred.
 - Members nav href corrected to `/settings/members` in shell fix pass.
+- From Plan 02 close-out: invite + org edit remain owned here (not UI-first).
 
 ## Task Checklist
 

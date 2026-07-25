@@ -77,12 +77,12 @@ const faqs = [
   {
     question: "Can I publish lead forms?",
     answer:
-      "Yes. Public lead forms are part of the MVP flow and connect directly to lead creation.",
+      "Public lead forms are on the SalesPilot MVP roadmap and will create leads directly from every campaign.",
   },
   {
-    question: "Does the dashboard use real data yet?",
+    question: "Does the dashboard show live pipeline data?",
     answer:
-      "This UI-first pass uses realistic static data. Backend wiring follows after the UI is complete.",
+      "Lead management is live today. Dashboard charts and notifications still use sample data while the live overview ships next.",
   },
 ];
 

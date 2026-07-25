@@ -29,22 +29,17 @@ function VerifyEmailContent() {
 
     setIsLoading(true);
     try {
-      // Depending on the exact Better Auth version, it's either under .emailVerification or root
-      const sendEmail =
-        (authClient as any).emailVerification?.sendVerificationEmail ||
-        (authClient as any).sendVerificationEmail;
+      const { error } = await authClient.sendVerificationEmail({
+        email,
+        callbackURL: "/dashboard",
+      });
 
-      if (sendEmail) {
-        const { error } = await sendEmail({ email });
-        if (error) {
-          toast.error(error.message || "Failed to resend verification email.");
-        } else {
-          toast.success("Verification email sent! Check your inbox.");
-        }
+      if (error) {
+        toast.error(error.message || "Failed to resend verification email.");
       } else {
-        toast.error("Verification email method not found.");
+        toast.success("Verification email sent! Check your inbox.");
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -52,9 +47,9 @@ function VerifyEmailContent() {
   };
 
   return (
-    <Card className="max-w-md mx-auto w-full">
-      <CardHeader className="space-y-1 text-center flex flex-col items-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+    <Card className="mx-auto w-full max-w-md">
+      <CardHeader className="flex flex-col items-center space-y-1 text-center">
+        <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
           <Mail className="h-6 w-6 text-primary" />
         </div>
         <CardTitle className="text-2xl font-bold">Check your email</CardTitle>
@@ -64,7 +59,7 @@ function VerifyEmailContent() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-center text-muted-foreground">
+        <p className="text-center text-sm text-muted-foreground">
           Click the link in the email to verify your account. If you don't see
           it, check your spam folder.
         </p>

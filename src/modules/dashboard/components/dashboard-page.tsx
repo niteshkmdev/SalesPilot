@@ -86,12 +86,13 @@ export function DashboardPage() {
         <div className="flex flex-col gap-2">
           <Badge variant="secondary" className="w-fit">
             <CalendarDaysIcon data-icon="inline-start" />
-            This Month
+            Sample data
           </Badge>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              See what needs attention and how the pipeline is moving.
+              Preview of the overview layout. Metrics below are sample data
+              until the live dashboard ships.
             </p>
           </div>
         </div>
@@ -102,9 +103,11 @@ export function DashboardPage() {
               Invite Member
             </Link>
           </Button>
-          <Button variant="outline" disabled>
-            <FileTextIcon data-icon="inline-start" />
-            Create Lead Form
+          <Button variant="outline" asChild>
+            <Link href="/leads/new">
+              <FileTextIcon data-icon="inline-start" />
+              New Lead
+            </Link>
           </Button>
         </div>
       </section>

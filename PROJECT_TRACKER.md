@@ -12,7 +12,7 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 ## Current State
 
 - Active plan: `06-leads-management`
-- Current task: Continue lead CRUD; assignment UI still open. Plan 01 re-audit complete.
+- Current task: Continue lead CRUD; assignment UI still open. Plan 02 UI-first close-out complete.
 - Next prompt after active plan: `prompt/07-dashboard-v1.md`
 - Last updated: 2026-07-25
 
@@ -21,7 +21,7 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 | # | Status | Plan | Dependency | Plan File | Prompt File | Next Plan |
 |---|---|---|---|---|---|---|
 | 01 | `[x]` | Core Foundation | None | `plan/01-core-foundation.md` | `prompt/01-core-foundation.md` | 02 Auth & Onboarding |
-| 02 | `[~]` | UI-First Pages | 01 Core Foundation | `plan/02-ui-first-pages.md` | `prompt/02-ui-first-pages.md` | 17 Backend Implementation |
+| 02 | `[x]` | UI-First Pages | 01 Core Foundation | `plan/02-ui-first-pages.md` | `prompt/02-ui-first-pages.md` | 17 Backend Implementation |
 | 03 | `[x]` | App Shell & Navigation | 02 Auth & Onboarding | `plan/03-app-shell-navigation.md` | `prompt/03-app-shell-navigation.md` | 04 Marketing Landing Page |
 | 04 | `[x]` | Marketing Landing Page | 03 App Shell & Navigation | `plan/04-marketing-landing-page.md` (missing; landing from UI-first) | `prompt/04-marketing-landing-page.md` | 05 Members, Roles & Settings |
 | 05 | `[~]` | Members, Roles & Settings | 03 App Shell & Navigation | `plan/05-members-roles-settings.md` | `prompt/05-members-roles-settings.md` | 06 Leads Management |
@@ -81,3 +81,5 @@ Every new agent must:
 | 2026-07-25 | Auto | Leads polish: Card-based create/edit form with source + website; typed lead DTOs/mappers; status color resolution; list filters (search, status, source); improved detail view. Assignment UI still open. |
 | 2026-07-25 | Auto | Re-opened Plan 01 for core foundation fix pass (env, domain context, role repo, load-only shell/onboarding, verify redirect). Temporarily paused Plan 06 as active. |
 | 2026-07-25 | Auto | Plan 01 re-audit complete: env via `env.ts`, domain OrganizationContext + roleName, role/member repos split, Better Auth hook sole provisioner, AppShell/onboarding load-only, unverified → `/verify`. Validation green. Deferred to Plan 06: leads under `src/server/*`, role-string authz, ad-hoc action envelopes. Restored Plan 06 as active. |
+| 2026-07-25 | Auto | Re-opened Plan 02 for UI-first close-out (landing copy, forgot-password, verify typing, dashboard honesty). Temporarily paused Plan 06. |
+| 2026-07-25 | Auto | Plan 02 close-out complete: landing FAQ honesty, `/forgot-password` + `/reset-password`, typed verify resend, dashboard sample-data + New Lead CTA. Carve-outs: invite/org edit → 05; assignment → 06; live dashboard → 07; forms → 09; notifications → 12. Restored Plan 06 as active. |

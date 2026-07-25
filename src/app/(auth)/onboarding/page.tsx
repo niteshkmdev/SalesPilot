@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * Onboarding is edit-org-name only. Organization creation happens in the
- * Better Auth user.create hook — this page never provisions.
+ * Onboarding: rename existing org, or create a workspace when the user
+ * has no membership (failed signup provision, or removed from their only org).
  */
 export default async function OnboardingRoute() {
   let user: ActiveUser;
@@ -36,8 +36,6 @@ export default async function OnboardingRoute() {
   const member = await findFirstActiveMemberByUserId(prisma, user.id);
 
   if (!member) {
-    // Hook failed or race — show onboarding with recovery messaging via page UI.
-    // Do not create a second organization here.
     return <OnboardingPage missingOrganization />;
   }
 

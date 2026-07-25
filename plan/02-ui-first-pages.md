@@ -2,7 +2,7 @@
 
 ## Objective
 
-Build the visible SalesPilot product experience first: marketing landing page, dashboard shell, dashboard widgets, and static UI states using documented design rules. Backend wiring, authentication enforcement, mutations, and API integrations come after this UI pass.
+Build the visible SalesPilot product experience first: marketing landing page, dashboard shell, dashboard widgets, and static UI states using documented design rules. Backend wiring for later features continues under numbered plans 05–12.
 
 ## Status Legend
 
@@ -13,10 +13,10 @@ Build the visible SalesPilot product experience first: marketing landing page, d
 
 ## Current Status
 
-- Overall status: `[~]` In progress
-- Current task: Build static Login and Signup UI pages next.
+- Overall status: `[x]` Complete (close-out re-audit done)
+- Current task: Complete. Resume Plan 06. `prompt/17-backend-implementation.md` superseded by plans 03–16.
 - Dependency: `01-core-foundation`
-- Next prompt after completion: `prompt/17-backend-implementation.md`
+- Next after completion: `plan/06-leads-management.md`
 
 ## Required Docs
 
@@ -40,29 +40,35 @@ Build the visible SalesPilot product experience first: marketing landing page, d
 - `[x]` Add shadcn UI primitives needed for page composition.
 - `[x]` Build marketing landing page at `/`.
 - `[x]` Build static dashboard page at `/dashboard`.
-- `[x]` Build static Login page UI.
+- `[x]` Build static Login page UI (later wired to Better Auth).
 - `[x]` Build static Signup page UI (including org creation rules).
-- `[ ]` Add app-shell/navigation UI pages after marketing/dashboard if scope continues.
-- `[ ]` Add remaining static UI pages: leads, lead forms, members, settings, notifications, profile.
-- `[ ]` Keep backend work deferred until the UI pass is marked complete.
-- `[ ]` Update `PROJECT_TRACKER.md` after each meaningful task.
-- `[ ]` Mark this plan complete in `PROJECT_TRACKER.md`.
-- `[ ]` Open `prompt/17-backend-implementation.md` to begin backend wiring after UI completion.
+- `[x]` App-shell/navigation — delivered under Plan 03.
+- `[x]` Leads / members / settings / profile UI — delivered under Plans 05–06 (not static rebuild).
+- `[x]` Close-out: landing FAQ honesty; forgot/reset password; verify typing; dashboard demo honesty.
+- `[x]` Notifications + public lead forms — carved out to Plans 12 and 09.
+- `[x]` Update `PROJECT_TRACKER.md` after each meaningful task.
+- `[x]` Mark this plan complete in `PROJECT_TRACKER.md`.
+
+## Carve-outs (owned elsewhere)
+
+- Settings invite + org edit save → Plan 05
+- Lead assignment + `src/server` leads layout debt → Plan 06
+- Live dashboard metrics → Plan 07
+- Public lead forms → Plan 09
+- Notifications page → Plan 12
 
 ## Validation Checklist
 
 - `[x]` Run `npm run lint`.
-- `[~]` Run `npm run build`; interrupted by user handoff request before completion.
-- `[!]` `npm run test` intentionally skipped for now by user request.
+- `[x]` Run `npm run build`.
+- `[x]` Run `npm run test` (existing suite green during close-out).
 
 ## Implementation Rules
 
-- Build UI with static/demo data only during this pass.
-- Do not add backend route handlers, mutations, auth redirects, or database reads during this UI-first plan.
-- Keep pages thin and move substantial UI into module-owned components.
 - Prefer Server Components unless browser interactivity is required.
 - Use shadcn components and semantic Tailwind tokens.
-- Avoid raw colors, `space-*` utilities, and default admin-template styling.
+- Keep pages thin; substantial UI lives in module components.
+- Auth pages may use Better Auth client (already wired by later work).
 
 ## Progress Log
 
@@ -74,6 +80,8 @@ Build the visible SalesPilot product experience first: marketing landing page, d
 | 2026-07-25 | Codex | Fixed Radix Slot client-boundary runtime issue by marking Button and Badge as Client Components. `npm run lint` passes. |
 | 2026-07-25 | Codex | User requested handoff. Build was stopped before completion. Resume with static Login and Signup pages. |
 | 2026-07-25 | Antigravity | Built static Login and Signup UI pages. Added logic for conditional org creation in signup UI based on invite query param. |
+| 2026-07-25 | Auto | Re-opened for close-out re-audit: plan was stale; shell/settings/leads already exist under later plans. Scope = polish leftovers only. |
+| 2026-07-25 | Auto | Close-out complete: FAQ copy, `/forgot-password` + `/reset-password`, typed verify resend, dashboard sample-data honesty. Lint/test/build green. |
 
 ## Changed Files Log
 
@@ -83,18 +91,13 @@ Build the visible SalesPilot product experience first: marketing landing page, d
 | 2026-07-25 | `src/components/ui/card.tsx`, `src/components/ui/badge.tsx`, `src/components/ui/separator.tsx`, `src/components/ui/avatar.tsx`, `src/components/ui/table.tsx` | Added official shadcn primitives for static UI composition. |
 | 2026-07-25 | `src/app/page.tsx`, `src/app/(dashboard)/dashboard/page.tsx`, `src/modules/marketing/components/landing-page.tsx`, `src/modules/dashboard/components/dashboard-page.tsx`, `src/app/layout.tsx`, `src/app/globals.css` | Added marketing and dashboard UI routes, product metadata, and Inter font token alignment. |
 | 2026-07-25 | `src/components/ui/button.tsx`, `src/components/ui/badge.tsx` | Added `"use client"` because Radix Slot uses React context and cannot be imported through Server Components without a client boundary. |
-
 | 2026-07-25 | `src/app/(auth)/login/page.tsx`, `src/app/(auth)/signup/page.tsx`, `src/modules/auth/components/login-page.tsx`, `src/modules/auth/components/signup-page.tsx`, `src/app/(auth)/layout.tsx` | Added static Login and Signup routes and components. |
+| 2026-07-25 | `landing-page.tsx`, `forgot-password*`, `reset-password*`, `verify-page.tsx`, `login-page.tsx`, `dashboard-page.tsx`, trackers | UI-first close-out polish. |
 
 ## Blockers
 
 - None.
 
-## Handoff
-
-- Resume task: continue app UI pages: leads, lead forms, members, settings, notifications, and profile.
-- Validation state: `npm run lint` passes; `npm run build` should be rerun after the auth pages are added; `npm run test` is skipped by user request.
-
 ## Next Prompt
 
-- When UI pages are complete, open `prompt/17-backend-implementation.md`.
+- Resume `plan/06-leads-management.md`.

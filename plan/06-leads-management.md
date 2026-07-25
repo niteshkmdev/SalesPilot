@@ -44,3 +44,8 @@ Build the core lead management slice including CRUD, assignment, status/source h
 - Replace role-name authz (`"Owner"`, `"Admin"`) with `Permissions.*` + `createAuthorizationService`.
 - Use `requireAppContext` and `src/shared/api` envelopes in lead actions instead of ad-hoc `{ success }` / raw Prisma session lookups.
 - Finish assignment UI.
+
+## UI-first carve-out note (Plan 02)
+
+- Live dashboard metrics/notifications widgets are Plan 07 (dashboard page still shows sample data by design).
+- Public lead forms are Plan 09; notifications page is Plan 12.
