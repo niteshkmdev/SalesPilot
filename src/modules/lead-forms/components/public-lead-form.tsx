@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Script from "next/script";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PublicFormBrandHeader } from "@/modules/lead-forms/components/public-form-brand-header";
 import type {
   PublicFormDto,
   PublicFormFieldDto,
@@ -109,34 +109,14 @@ export function PublicLeadForm({
 
   return (
     <div className="flex flex-col gap-8">
-      <header className="flex flex-col gap-3">
-        {form.brandingDisplay !== "NAME" && form.branding.logo ? (
-          <Image
-            src={form.branding.logo}
-            alt={form.organizationName}
-            width={160}
-            height={40}
-            unoptimized
-            className="h-10 w-auto object-contain"
-          />
-        ) : null}
-        {form.brandingDisplay !== "LOGO" || !form.branding.logo ? (
-          <p className="text-sm font-medium text-muted-foreground">
-            {form.organizationName}
-          </p>
-        ) : null}
-        <div>
-          <h1
-            className="text-3xl font-semibold tracking-tight"
-            style={accent ? { color: accent } : undefined}
-          >
-            {form.name}
-          </h1>
-          {form.description ? (
-            <p className="mt-2 text-muted-foreground">{form.description}</p>
-          ) : null}
-        </div>
-      </header>
+      <PublicFormBrandHeader
+        organizationName={form.organizationName}
+        formName={form.name}
+        description={form.description}
+        logoUrl={form.branding.logo}
+        brandingDisplay={form.brandingDisplay}
+        accentColor={accent}
+      />
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {fieldRows.map((row) => {

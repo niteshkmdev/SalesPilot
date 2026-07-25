@@ -1,6 +1,7 @@
 import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 import { SalesPilotBrandLink } from "@/components/brand/salespilot-mark";
+import { DigitalHeroesAttribution } from "@/components/digital-heroes-attribution";
 import { Button } from "@/components/ui/button";
 
 interface MarketingSiteHeaderProps {
@@ -61,16 +62,19 @@ export function MarketingSiteHeader({
 export function MarketingSiteFooter() {
   return (
     <footer className="border-t">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-        <p>© 2026 SalesPilot. Built for focused sales teams.</p>
-        <div className="flex gap-4">
-          <Link href="/privacy" className="hover:text-foreground">
-            Privacy
-          </Link>
-          <Link href="/terms" className="hover:text-foreground">
-            Terms
-          </Link>
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-muted-foreground">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <p>© 2026 SalesPilot. Built for focused sales teams.</p>
+          <div className="flex gap-4">
+            <Link href="/privacy" className="hover:text-foreground">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-foreground">
+              Terms
+            </Link>
+          </div>
         </div>
+        <DigitalHeroesAttribution className="pt-1" />
       </div>
     </footer>
   );

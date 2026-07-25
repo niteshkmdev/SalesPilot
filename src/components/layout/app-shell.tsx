@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { DigitalHeroesAttribution } from "@/components/digital-heroes-attribution";
 import { requireAppContext } from "@/modules/auth/services/app-context.service";
 import type { OrganizationContext } from "@/modules/organizations/types/OrganizationContext";
 import { ApiErrorCode, AppError } from "@/shared/api/errors";
@@ -55,6 +56,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
           {children}
         </main>
+        <footer className="border-t bg-background px-4 py-3">
+          <DigitalHeroesAttribution />
+        </footer>
       </div>
     </div>
   );
