@@ -3,5 +3,6 @@
   "editor.formatOnSave": true,
   "[typescriptreact]": {
     "editor.defaultFormatter": "biomejs.biome"
-  }
+  },
+  "prisma.pinToPrisma6": true
 }

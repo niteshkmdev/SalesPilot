@@ -11,9 +11,9 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 
 ## Current State
 
-- Active plan: None; `01-core-foundation` is complete.
-- Current task: Start `02-auth-onboarding` by creating `plan/02-auth-onboarding.md` from `prompt/02-auth-onboarding.md`.
-- Next prompt after active plan: `prompt/03-app-shell-navigation.md`
+- Active plan: `02-ui-first-pages`
+- Current task: Build static Login and Signup UI pages next.
+- Next prompt after active plan: `prompt/17-backend-implementation.md`
 - Last updated: 2026-07-25
 
 ## Plan Index
@@ -21,7 +21,7 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 | # | Status | Plan | Dependency | Plan File | Prompt File | Next Plan |
 |---|---|---|---|---|---|---|
 | 01 | `[x]` | Core Foundation | None | `plan/01-core-foundation.md` | `prompt/01-core-foundation.md` | 02 Auth & Onboarding |
-| 02 | `[ ]` | Auth & Onboarding | 01 Core Foundation | `plan/02-auth-onboarding.md` | `prompt/02-auth-onboarding.md` | 03 App Shell & Navigation |
+| 02 | `[~]` | UI-First Pages | 01 Core Foundation | `plan/02-ui-first-pages.md` | `prompt/02-ui-first-pages.md` | 17 Backend Implementation |
 | 03 | `[ ]` | App Shell & Navigation | 02 Auth & Onboarding | `plan/03-app-shell-navigation.md` | `prompt/03-app-shell-navigation.md` | 04 Marketing Landing Page |
 | 04 | `[ ]` | Marketing Landing Page | 03 App Shell & Navigation | `plan/04-marketing-landing-page.md` | `prompt/04-marketing-landing-page.md` | 05 Members, Roles & Settings |
 | 05 | `[ ]` | Members, Roles & Settings | 03 App Shell & Navigation | `plan/05-members-roles-settings.md` | `prompt/05-members-roles-settings.md` | 06 Leads Management |
@@ -68,3 +68,6 @@ Every new agent must:
 | 2026-07-25 | Codex | Completed core validation: `npx prisma validate`, Prisma client generation, `npx tsc --noEmit`, `npm run lint`, `npm run test`, and `npm run build` pass. |
 | 2026-07-25 | Codex | Resolved the Prisma v7 + MongoDB build blocker by pinning Prisma packages to v6.19.3 and using `prisma-client-js`; fixed the root layout toaster hydration error. |
 | 2026-07-25 | Codex | Marked `01-core-foundation` complete. Next action is to open `prompt/02-auth-onboarding.md` and create `plan/02-auth-onboarding.md`. |
+| 2026-07-25 | Codex | User pivoted execution order to UI-first: marketing, dashboard, and visible app pages before backend/auth implementation. |
+| 2026-07-25 | Codex | Created `plan/02-ui-first-pages.md`, added `prompt/17-backend-implementation.md`, added shadcn UI primitives, and built initial `/` and `/dashboard` static UI. |
+| 2026-07-25 | Codex | Handoff written per user request. `npm run lint` passes; `npm run build` was interrupted for handoff. Next UI pages are Login and Signup. |
