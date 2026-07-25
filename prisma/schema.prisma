@@ -16,7 +16,7 @@ datasource db {
 // ---------------------------------------------------------------------------
 
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  id            String    @id @default(cuid()) @map("_id")
   name          String
   email         String    @unique
   emailVerified Boolean   @default(false)
@@ -32,24 +32,24 @@ model User {
 }
 
 model Session {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  id             String   @id @default(cuid()) @map("_id")
   expiresAt      DateTime
   token          String   @unique
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   ipAddress      String?
   userAgent      String?
-  userId         String   @db.ObjectId
+  userId         String
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("session")
 }
 
 model Account {
-  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
+  id                    String    @id @default(cuid()) @map("_id")
   accountId             String
   providerId            String
-  userId                String    @db.ObjectId
+  userId                String
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
@@ -65,7 +65,7 @@ model Account {
 }
 
 model Verification {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  id         String   @id @default(cuid()) @map("_id")
   identifier String
   value      String
   expiresAt  DateTime
@@ -107,7 +107,7 @@ model Organization {
 model OrganizationMember {
   id             String   @id @default(cuid(2)) @map("_id")
   organizationId String
-  userId         String   @db.ObjectId
+  userId         String
   roleId         String
   isOwner        Boolean  @default(false)
   joinedAt       DateTime @default(now())

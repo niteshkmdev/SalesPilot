@@ -40,8 +40,8 @@ Build the visible SalesPilot product experience first: marketing landing page, d
 - `[x]` Add shadcn UI primitives needed for page composition.
 - `[x]` Build marketing landing page at `/`.
 - `[x]` Build static dashboard page at `/dashboard`.
-- `[ ]` Build static Login page UI.
-- `[ ]` Build static Signup page UI.
+- `[x]` Build static Login page UI.
+- `[x]` Build static Signup page UI (including org creation rules).
 - `[ ]` Add app-shell/navigation UI pages after marketing/dashboard if scope continues.
 - `[ ]` Add remaining static UI pages: leads, lead forms, members, settings, notifications, profile.
 - `[ ]` Keep backend work deferred until the UI pass is marked complete.
@@ -73,6 +73,7 @@ Build the visible SalesPilot product experience first: marketing landing page, d
 | 2026-07-25 | Codex | Built the static marketing landing page and static dashboard overview route with realistic UI demo data. |
 | 2026-07-25 | Codex | Fixed Radix Slot client-boundary runtime issue by marking Button and Badge as Client Components. `npm run lint` passes. |
 | 2026-07-25 | Codex | User requested handoff. Build was stopped before completion. Resume with static Login and Signup pages. |
+| 2026-07-25 | Antigravity | Built static Login and Signup UI pages. Added logic for conditional org creation in signup UI based on invite query param. |
 
 ## Changed Files Log
 
@@ -83,17 +84,15 @@ Build the visible SalesPilot product experience first: marketing landing page, d
 | 2026-07-25 | `src/app/page.tsx`, `src/app/(dashboard)/dashboard/page.tsx`, `src/modules/marketing/components/landing-page.tsx`, `src/modules/dashboard/components/dashboard-page.tsx`, `src/app/layout.tsx`, `src/app/globals.css` | Added marketing and dashboard UI routes, product metadata, and Inter font token alignment. |
 | 2026-07-25 | `src/components/ui/button.tsx`, `src/components/ui/badge.tsx` | Added `"use client"` because Radix Slot uses React context and cannot be imported through Server Components without a client boundary. |
 
+| 2026-07-25 | `src/app/(auth)/login/page.tsx`, `src/app/(auth)/signup/page.tsx`, `src/modules/auth/components/login-page.tsx`, `src/modules/auth/components/signup-page.tsx`, `src/app/(auth)/layout.tsx` | Added static Login and Signup routes and components. |
+
 ## Blockers
 
 - None.
 
 ## Handoff
 
-- Resume task: build static Login and Signup UI pages.
-- Suggested routes: `src/app/(auth)/login/page.tsx` and `src/app/(auth)/signup/page.tsx`.
-- Suggested components: `src/modules/auth/components/login-page.tsx` and `src/modules/auth/components/signup-page.tsx`.
-- Keep this UI-first: use static forms and links only; do not wire Better Auth, server actions, API calls, redirects, or database reads yet.
-- After Login and Signup pages, continue app UI pages: leads, lead forms, members, settings, notifications, and profile.
+- Resume task: continue app UI pages: leads, lead forms, members, settings, notifications, and profile.
 - Validation state: `npm run lint` passes; `npm run build` should be rerun after the auth pages are added; `npm run test` is skipped by user request.
 
 ## Next Prompt

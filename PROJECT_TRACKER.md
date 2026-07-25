@@ -11,9 +11,9 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 
 ## Current State
 
-- Active plan: `02-ui-first-pages`
-- Current task: Build static Login and Signup UI pages next.
-- Next prompt after active plan: `prompt/17-backend-implementation.md`
+- Active plan: `06-leads-management`
+- Current task: Plan and build lead CRUD, data table, and assignment logic.
+- Next prompt after active plan: `prompt/07-dashboard-v1.md`
 - Last updated: 2026-07-25
 
 ## Plan Index
@@ -22,10 +22,10 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 |---|---|---|---|---|---|---|
 | 01 | `[x]` | Core Foundation | None | `plan/01-core-foundation.md` | `prompt/01-core-foundation.md` | 02 Auth & Onboarding |
 | 02 | `[~]` | UI-First Pages | 01 Core Foundation | `plan/02-ui-first-pages.md` | `prompt/02-ui-first-pages.md` | 17 Backend Implementation |
-| 03 | `[ ]` | App Shell & Navigation | 02 Auth & Onboarding | `plan/03-app-shell-navigation.md` | `prompt/03-app-shell-navigation.md` | 04 Marketing Landing Page |
-| 04 | `[ ]` | Marketing Landing Page | 03 App Shell & Navigation | `plan/04-marketing-landing-page.md` | `prompt/04-marketing-landing-page.md` | 05 Members, Roles & Settings |
-| 05 | `[ ]` | Members, Roles & Settings | 03 App Shell & Navigation | `plan/05-members-roles-settings.md` | `prompt/05-members-roles-settings.md` | 06 Leads Management |
-| 06 | `[ ]` | Leads Management | 05 Members, Roles & Settings | `plan/06-leads-management.md` | `prompt/06-leads-management.md` | 07 Dashboard v1 |
+| 03 | `[x]` | App Shell & Navigation | 02 Auth & Onboarding | `plan/03-app-shell-navigation.md` | `prompt/03-app-shell-navigation.md` | 04 Marketing Landing Page |
+| 04 | `[x]` | Marketing Landing Page | 03 App Shell & Navigation | `plan/04-marketing-landing-page.md` | `prompt/04-marketing-landing-page.md` | 05 Members, Roles & Settings |
+| 05 | `[x]` | Members, Roles & Settings | 03 App Shell & Navigation | `plan/05-members-roles-settings.md` | `prompt/05-members-roles-settings.md` | 06 Leads Management |
+| 06 | `[~]` | Leads Management | 05 Members, Roles & Settings | `plan/06-leads-management.md` | `prompt/06-leads-management.md` | 07 Dashboard v1 |
 | 07 | `[ ]` | Dashboard v1 | 06 Leads Management | `plan/07-dashboard-v1.md` | `prompt/07-dashboard-v1.md` | 08 Custom Fields |
 | 08 | `[ ]` | Custom Fields | 06 Leads Management | `plan/08-custom-fields.md` | `prompt/08-custom-fields.md` | 09 Lead Forms & Public Submissions |
 | 09 | `[ ]` | Lead Forms & Public Submissions | 08 Custom Fields | `plan/09-lead-forms-public-submissions.md` | `prompt/09-lead-forms-public-submissions.md` | 10 Search |
@@ -71,3 +71,9 @@ Every new agent must:
 | 2026-07-25 | Codex | User pivoted execution order to UI-first: marketing, dashboard, and visible app pages before backend/auth implementation. |
 | 2026-07-25 | Codex | Created `plan/02-ui-first-pages.md`, added `prompt/17-backend-implementation.md`, added shadcn UI primitives, and built initial `/` and `/dashboard` static UI. |
 | 2026-07-25 | Codex | Handoff written per user request. `npm run lint` passes; `npm run build` was interrupted for handoff. Next UI pages are Login and Signup. |
+| 2026-07-25 | Antigravity | Implemented static Login and Signup UI pages. Added logic for conditional org creation in signup UI based on invite query param. Next task: remaining app UI pages. |
+| 2026-07-25 | Antigravity | Wired Login and Signup UI with Better Auth client. Added Google OAuth buttons and a new `/onboarding` flow to capture missing Organization info for Google signups. |
+| 2026-07-25 | Antigravity | Resolved MongoDB malformed ObjectId error caused by Better Auth generating string IDs. Updated Prisma schema. |
+| 2026-07-25 | Antigravity | Completed plan 02. Drafted implementation plan for App Shell & Navigation (Plan 03) and awaiting user approval. |
+| 2026-07-25 | Antigravity | Completed plan 03: App Shell, sidebar, role-aware navigation. Skipped plan 04 (already done). Drafted plan 05 for Settings & Members. |
+| 2026-07-25 | Antigravity | Completed plan 05: Profile Settings, Organization Settings, and Member Management UI. Drafted plan 06 for Leads Management. |
