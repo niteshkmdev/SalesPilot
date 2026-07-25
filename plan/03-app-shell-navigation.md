@@ -13,8 +13,8 @@ Plan and build the protected CRM shell, responsive navigation, role-aware menu v
 
 ## Current Status
 
-- Overall status: `[~]` In progress
-- Current task: Get user approval on the implementation plan.
+- Overall status: `[x]` Complete
+- Current task: Shell consolidated with mock design (sticky 280px sidebar, rich header). Nested dashboard chrome removed.
 - Dependency: `02-auth-onboarding`
 - Next prompt after completion: `prompt/04-marketing-landing-page.md`
 

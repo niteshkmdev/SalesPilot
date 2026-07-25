@@ -1,95 +1,72 @@
 "use client";
 
-import { CircleUser, Package2 } from "lucide-react";
+import { PlusIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth-client";
 import { MobileNav } from "./mobile-nav";
 
 interface HeaderProps {
+  role: string;
   user: {
     name: string;
     email: string;
     image?: string | null;
   };
-  role: string;
+  organization: {
+    name: string;
+  };
 }
 
-export function Header({ user, role }: HeaderProps) {
-  const router = useRouter();
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
 
-  const handleSignOut = async () => {
-    try {
-      await authClient.signOut();
-      router.push("/login");
-    } catch (_error) {
-      toast.error("Error signing out");
-    }
-  };
+export function Header({ role, user, organization }: HeaderProps) {
+  const orgInitials = getInitials(organization.name) || "OR";
+  const workspaceLabel = `${role} workspace`;
 
   return (
-    <header className="flex h-16 items-center gap-4 border-b bg-muted/40 px-4 lg:px-6">
-      <MobileNav role={role} />
+    <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
+      <div className="flex h-16 items-center gap-4 px-4 lg:px-6">
+        <MobileNav role={role} user={user} />
 
-      {/* Brand area for desktop, since mobile nav hides brand in sheet */}
-      <div className="w-full flex-1">
-        <Link
-          href="#"
-          className="hidden lg:flex items-center gap-2 text-lg font-semibold"
-        >
-          <Package2 className="h-6 w-6" />
-          <span className="sr-only">SalesPilot</span>
-        </Link>
-      </div>
+        <div className="flex min-w-0 items-center gap-3">
+          <Avatar className="size-9">
+            <AvatarFallback>{orgInitials}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 hidden sm:block">
+            <p className="truncate text-sm font-medium">{organization.name}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {workspaceLabel}
+            </p>
+          </div>
+        </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user.image || ""} alt={user.name} />
-              <AvatarFallback>
-                <CircleUser className="h-5 w-5" />
-              </AvatarFallback>
-            </Avatar>
-            <span className="sr-only">Toggle user menu</span>
+        <div className="hidden flex-1 justify-center md:flex">
+          <Link
+            href="/leads"
+            className="flex w-full max-w-md items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+          >
+            <SearchIcon className="size-4 shrink-0" />
+            <span className="truncate">Search leads, forms, members...</span>
+          </Link>
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          <Button asChild className="hidden sm:inline-flex">
+            <Link href="/leads/new">
+              <PlusIcon data-icon="inline-start" />
+              New Lead
+            </Link>
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel className="font-normal p-2">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={user.image || ""} alt={user.name} />
-                <AvatarFallback>
-                  <CircleUser className="h-5 w-5" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col space-y-1 overflow-hidden">
-                <p className="text-sm font-medium leading-none truncate">{user.name}</p>
-                <p className="text-xs leading-none text-muted-foreground truncate" title={user.email}>
-                  {user.email}
-                </p>
-              </div>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push("/settings")}>
-            Settings
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut}>Logout</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </div>
+      </div>
     </header>
   );
 }

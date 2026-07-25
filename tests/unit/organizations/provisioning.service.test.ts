@@ -1,6 +1,5 @@
-import type { User } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import type { ProvisionableUser } from "@/modules/organizations/services/provisioning.service";
 import { allPermissionNames } from "@/modules/permissions/constants/permissions";
 
 const mocks = vi.hoisted(() => ({
@@ -31,12 +30,18 @@ vi.mock("@/modules/permissions/repository/permission.repository", () => ({
 vi.mock("@/modules/organizations/repository/organization.repository", () => ({
   findOrganizationBySlug: mocks.findOrganizationBySlug,
   createOrganization: mocks.createOrganization,
-  createRole: mocks.createRole,
-  createRolePermissions: mocks.createRolePermissions,
-  createMember: mocks.createMember,
   createDefaultLeadStatuses: mocks.createDefaultLeadStatuses,
   createDefaultLeadSources: mocks.createDefaultLeadSources,
   createDefaultBranding: mocks.createDefaultBranding,
+}));
+
+vi.mock("@/modules/organizations/repository/role.repository", () => ({
+  createRole: mocks.createRole,
+  createRolePermissions: mocks.createRolePermissions,
+}));
+
+vi.mock("@/modules/organizations/repository/member.repository", () => ({
+  createMember: mocks.createMember,
 }));
 
 describe("provisionOrganizationForUser", () => {
@@ -79,9 +84,7 @@ describe("provisionOrganizationForUser", () => {
       email: "ada@example.com",
       emailVerified: true,
       image: null,
-      createdAt: new Date("2026-07-25T00:00:00.000Z"),
-      updatedAt: new Date("2026-07-25T00:00:00.000Z"),
-    } satisfies User;
+    } satisfies ProvisionableUser;
 
     const context = await provisionOrganizationForUser(user);
 
@@ -99,6 +102,12 @@ describe("provisionOrganizationForUser", () => {
       "role_1",
       ["permission_1"],
     );
+    expect(mocks.createMember).toHaveBeenCalledWith(mocks.tx, {
+      organizationId: "org_1",
+      userId: "user_1",
+      roleId: "role_1",
+      isOwner: true,
+    });
     expect(mocks.createDefaultLeadStatuses).toHaveBeenCalledWith(
       mocks.tx,
       "org_1",
@@ -111,5 +120,12 @@ describe("provisionOrganizationForUser", () => {
     );
     expect(mocks.createDefaultBranding).toHaveBeenCalledWith(mocks.tx, "org_1");
     expect(context.permissions).toEqual(allPermissionNames);
+    expect(context.member.roleName).toBe("Owner");
+    expect(context.user).toEqual(user);
+    expect(context.organization).toEqual({
+      id: "org_1",
+      name: "Ada Lovelace's Organization",
+      slug: "ada-lovelace",
+    });
   });
 });

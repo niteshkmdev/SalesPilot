@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-
+import { provisionOrganizationForUser } from "@/modules/organizations/services/provisioning.service";
 import { prisma } from "@/server/db/prisma";
 import { sendEmail } from "@/server/email/mailer";
 import { env } from "@/server/env";
@@ -30,6 +30,30 @@ export const auth = betterAuth({
   }),
 
   // ---------------------------------------------------------------------------
+  // Hooks
+  // ---------------------------------------------------------------------------
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          // Sole auto-provision path: create org + owner membership on signup.
+          try {
+            await provisionOrganizationForUser({
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              image: user.image ?? null,
+              emailVerified: Boolean(user.emailVerified),
+            });
+          } catch (error) {
+            console.error("Failed to auto-provision organization:", error);
+          }
+        },
+      },
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // Session
   // ---------------------------------------------------------------------------
   session: {
@@ -54,7 +78,7 @@ export const auth = betterAuth({
      * In development the standard `better-auth` prefix is used so that
      * cookies work on plain http://localhost without HTTPS.
      */
-    useSecureCookies: process.env.NODE_ENV === "production",
+    useSecureCookies: env.NODE_ENV === "production",
 
     /**
      * Cross-site request forgery protection.

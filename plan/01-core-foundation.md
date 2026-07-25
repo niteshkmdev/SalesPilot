@@ -13,10 +13,10 @@ Build the SalesPilot foundation required before feature UI work: documented data
 
 ## Current Status
 
-- Overall status: `[x]` Complete
-- Current task: Complete. Next action is to start `02-auth-onboarding` from `prompt/02-auth-onboarding.md`.
+- Overall status: `[x]` Complete (re-audit fix pass done)
+- Current task: Complete. Resume Plan 06 leads work. Auth Service login/register wrappers intentionally deferred (Better Auth client).
 - Dependency: None
-- Next prompt after completion: `prompt/02-auth-onboarding.md`
+- Next prompt after completion: Plan 06 deferred debt + `prompt/07-dashboard-v1.md` when leads done.
 
 ## Required Docs
 
@@ -62,19 +62,20 @@ Build the SalesPilot foundation required before feature UI work: documented data
 - `[x]` Add central permission registry using `resource.action` names.
 - `[x]` Add organization provisioning service for first verified user setup.
 - `[x]` Add organization repository with tenant-safe persistence methods.
-- `[x]` Add member repository and role/permission repositories.
+- `[x]` Add member repository and role/permission repositories (`role.repository.ts`, `createMember` in member repo).
 - `[x]` Add seeded defaults for permissions, owner role, lead statuses, lead sources, and branding.
-- `[x]` Add Auth Service wrapper around Better Auth.
-- `[x]` Add app-context resolver for user, organization, member, and permissions.
+- `[x]` Add Auth Service wrapper around Better Auth (session/user/logout only; login/register stay on Better Auth client).
+- `[x]` Add app-context resolver for user, organization, member, and permissions (load-only; domain types; no Prisma leaks).
 - `[x]` Add Authorization Service with `can`, `canAll`, and `canAny`.
 - `[x]` Add standard API success and error envelope helpers.
 - `[x]` Add validation error mapping for Zod errors.
-- `[x]` Add DTO mappers so Prisma models never leave repositories.
+- `[x]` Domain context types (no `@prisma/client` in OrganizationContext); API DTOs remain for responses.
 - `[x]` Add Vitest configuration and test scripts.
-- `[x]` Add focused unit tests for auth context, authorization, API helpers, and provisioning.
+- `[x]` Focused unit tests for auth context, authorization, API helpers, and provisioning (load-only context).
+- `[x]` Env access only via `src/server/env.ts`.
+- `[x]` AppShell + onboarding load-only; Better Auth hook sole auto-provision; unverified → `/verify`.
 - `[x]` Update `PROJECT_TRACKER.md` after each meaningful task.
 - `[x]` Mark this plan complete in `PROJECT_TRACKER.md`.
-- `[x]` Open `prompt/02-auth-onboarding.md` to begin the next plan.
 
 ## Validation Checklist
 
@@ -105,6 +106,8 @@ Build the SalesPilot foundation required before feature UI work: documented data
 | 2026-07-25 | Codex | Completed lint and production build validation. Fixed the root layout toaster placement so Sonner renders inside `<body>`. |
 | 2026-07-25 | Codex | Resolved Prisma v7 + MongoDB build incompatibility by using Prisma v6.19.3 and the `prisma-client-js` generator. |
 | 2026-07-25 | Codex | Marked the core foundation plan complete and opened `prompt/02-auth-onboarding.md` for the next slice. |
+| 2026-07-25 | Auto | Re-opened for fix pass: env leaks, Prisma in OrganizationContext, missing role repo, duplicate provision in AppShell/onboarding, unverified email not redirected. |
+| 2026-07-25 | Auto | Fix pass complete: env routed through `env.ts`; domain OrganizationContext + roleName; role/member repos split; requireAppContext load-only; AppShell redirects (login/verify/onboarding); onboarding no longer provisions. Tests 10/10; lint/build green. |
 
 ## Changed Files Log
 
@@ -115,11 +118,13 @@ Build the SalesPilot foundation required before feature UI work: documented data
 | 2026-07-25 | `src/modules/auth/*`, `src/modules/organizations/*`, `src/modules/permissions/*`, `src/shared/api/*`, `src/server/db/types.ts` | Added core foundation services, repositories, DTOs, and API helpers. |
 | 2026-07-25 | `package.json`, `pnpm-lock.yaml`, `vitest.config.ts`, `tests/unit/*` | Added Vitest tooling and focused unit tests. |
 | 2026-07-25 | `src/app/layout.tsx`, `src/components/ui/sonner.tsx` | Fixed hydration issue by ensuring the Sonner toaster renders inside `<body>`. |
+| 2026-07-25 | `src/server/env.ts` consumers, `OrganizationContext`, repos, AppShell, onboarding, unit tests | Core foundation re-audit: env-only access, domain context, role repo, load-only shell/onboarding, verify redirect. |
 
 ## Blockers
 
 - `docs/15-custom-fields.md` is empty. Use `docs/25-database-schema.md`, `docs/09-api-specification.md`, and neighboring feature patterns until a custom-fields spec is added.
+- Deferred to Plan 06: leads under `src/server/{services,repositories,dto}` instead of `modules/leads`; role-string authz; ad-hoc server-action envelopes vs `src/shared/api`.
 
 ## Next Prompt
 
-- When this plan is complete, open `prompt/02-auth-onboarding.md`.
+- Resume Plan 06 (`plan/06-leads-management.md`). When leads are done, open `prompt/07-dashboard-v1.md`.

@@ -1,7 +1,7 @@
-import type { User } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Permissions } from "@/modules/permissions/constants/permissions";
+import { ApiErrorCode } from "@/shared/api/errors";
 
 const mocks = vi.hoisted(() => ({
   user: {
@@ -9,10 +9,8 @@ const mocks = vi.hoisted(() => ({
     name: "Ada Lovelace",
     email: "ada@example.com",
     emailVerified: true,
-    image: null,
-    createdAt: new Date("2026-07-25T00:00:00.000Z"),
-    updatedAt: new Date("2026-07-25T00:00:00.000Z"),
-  } satisfies User,
+    image: null as string | null,
+  },
   requireUser: vi.fn(),
   findFirstActiveMemberByUserId: vi.fn(),
   provisionOrganizationForUser: vi.fn(),
@@ -43,7 +41,7 @@ describe("requireAppContext", () => {
     mocks.requireUser.mockResolvedValue(mocks.user);
   });
 
-  it("resolves context from the first active membership", async () => {
+  it("resolves domain context from the first active membership", async () => {
     const member = {
       id: "member_1",
       organizationId: "org_1",
@@ -74,29 +72,41 @@ describe("requireAppContext", () => {
     );
 
     await expect(requireAppContext()).resolves.toEqual({
-      user: mocks.user,
-      organization: member.organization,
-      member,
+      user: {
+        id: "user_1",
+        name: "Ada Lovelace",
+        email: "ada@example.com",
+        image: null,
+        emailVerified: true,
+      },
+      organization: {
+        id: "org_1",
+        name: "Acme",
+        slug: "acme",
+      },
+      member: {
+        id: "member_1",
+        organizationId: "org_1",
+        userId: "user_1",
+        roleId: "role_1",
+        roleName: "Owner",
+        isOwner: true,
+      },
       permissions: [Permissions.LEAD_READ],
     });
     expect(mocks.provisionOrganizationForUser).not.toHaveBeenCalled();
   });
 
-  it("provisions organization context when the user has no membership", async () => {
-    const provisionedContext = {
-      user: mocks.user,
-      organization: { id: "org_1" },
-      member: { id: "member_1" },
-      permissions: [Permissions.LEAD_READ],
-    };
+  it("throws ORGANIZATION_REQUIRED without provisioning when membership is missing", async () => {
     mocks.findFirstActiveMemberByUserId.mockResolvedValue(null);
-    mocks.provisionOrganizationForUser.mockResolvedValue(provisionedContext);
 
     const { requireAppContext } = await import(
       "@/modules/auth/services/app-context.service"
     );
 
-    await expect(requireAppContext()).resolves.toBe(provisionedContext);
-    expect(mocks.provisionOrganizationForUser).toHaveBeenCalledWith(mocks.user);
+    await expect(requireAppContext()).rejects.toMatchObject({
+      code: ApiErrorCode.ORGANIZATION_REQUIRED,
+    });
+    expect(mocks.provisionOrganizationForUser).not.toHaveBeenCalled();
   });
 });

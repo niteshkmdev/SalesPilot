@@ -61,12 +61,8 @@ export function SignupPage({ isInvite = false }: SignupPageProps) {
         toast.error(error.message || "Failed to create account");
       } else {
         toast.success("Account created successfully!");
-        // Note: For a real app with organization logic, we would call our custom API
-        // to create the organization here if !isInvite. For now, following the UI-first
-        // approach, we just redirect or show success.
-        // Wait, the prompt says "wire the Auth with better Auth now", so we actually sign them up.
-        // If Email Verification is required, they can't login yet.
-        router.push("/login?verified=pending");
+        // Redirect to the verification page
+        router.push("/verify?email=" + encodeURIComponent(email));
       }
     } catch (_err) {
       toast.error("An unexpected error occurred");

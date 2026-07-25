@@ -12,7 +12,7 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 ## Current State
 
 - Active plan: `06-leads-management`
-- Current task: Plan and build lead CRUD, data table, and assignment logic.
+- Current task: Continue lead CRUD; assignment UI still open. Plan 01 re-audit complete.
 - Next prompt after active plan: `prompt/07-dashboard-v1.md`
 - Last updated: 2026-07-25
 
@@ -23,8 +23,8 @@ This file is the root handoff index for the SalesPilot build. Every agent must r
 | 01 | `[x]` | Core Foundation | None | `plan/01-core-foundation.md` | `prompt/01-core-foundation.md` | 02 Auth & Onboarding |
 | 02 | `[~]` | UI-First Pages | 01 Core Foundation | `plan/02-ui-first-pages.md` | `prompt/02-ui-first-pages.md` | 17 Backend Implementation |
 | 03 | `[x]` | App Shell & Navigation | 02 Auth & Onboarding | `plan/03-app-shell-navigation.md` | `prompt/03-app-shell-navigation.md` | 04 Marketing Landing Page |
-| 04 | `[x]` | Marketing Landing Page | 03 App Shell & Navigation | `plan/04-marketing-landing-page.md` | `prompt/04-marketing-landing-page.md` | 05 Members, Roles & Settings |
-| 05 | `[x]` | Members, Roles & Settings | 03 App Shell & Navigation | `plan/05-members-roles-settings.md` | `prompt/05-members-roles-settings.md` | 06 Leads Management |
+| 04 | `[x]` | Marketing Landing Page | 03 App Shell & Navigation | `plan/04-marketing-landing-page.md` (missing; landing from UI-first) | `prompt/04-marketing-landing-page.md` | 05 Members, Roles & Settings |
+| 05 | `[~]` | Members, Roles & Settings | 03 App Shell & Navigation | `plan/05-members-roles-settings.md` | `prompt/05-members-roles-settings.md` | 06 Leads Management |
 | 06 | `[~]` | Leads Management | 05 Members, Roles & Settings | `plan/06-leads-management.md` | `prompt/06-leads-management.md` | 07 Dashboard v1 |
 | 07 | `[ ]` | Dashboard v1 | 06 Leads Management | `plan/07-dashboard-v1.md` | `prompt/07-dashboard-v1.md` | 08 Custom Fields |
 | 08 | `[ ]` | Custom Fields | 06 Leads Management | `plan/08-custom-fields.md` | `prompt/08-custom-fields.md` | 09 Lead Forms & Public Submissions |
@@ -77,3 +77,7 @@ Every new agent must:
 | 2026-07-25 | Antigravity | Completed plan 02. Drafted implementation plan for App Shell & Navigation (Plan 03) and awaiting user approval. |
 | 2026-07-25 | Antigravity | Completed plan 03: App Shell, sidebar, role-aware navigation. Skipped plan 04 (already done). Drafted plan 05 for Settings & Members. |
 | 2026-07-25 | Antigravity | Completed plan 05: Profile Settings, Organization Settings, and Member Management UI. Drafted plan 06 for Leads Management. |
+| 2026-07-25 | Auto | Shell/auth fix pass: consolidated mock dashboard chrome into real AppShell (280px sticky sidebar, org+search+New Lead header, richer user menu); stripped nested `/dashboard` shell; session-aware marketing CTAs; auth back/home chrome; onboarding org rename action; nav hygiene (Members → `/settings/members`, hide unfinished Forms/Branding/Notifications). Demoted plan 05 to `[~]` (invite/org edit still stubs). |
+| 2026-07-25 | Auto | Leads polish: Card-based create/edit form with source + website; typed lead DTOs/mappers; status color resolution; list filters (search, status, source); improved detail view. Assignment UI still open. |
+| 2026-07-25 | Auto | Re-opened Plan 01 for core foundation fix pass (env, domain context, role repo, load-only shell/onboarding, verify redirect). Temporarily paused Plan 06 as active. |
+| 2026-07-25 | Auto | Plan 01 re-audit complete: env via `env.ts`, domain OrganizationContext + roleName, role/member repos split, Better Auth hook sole provisioner, AppShell/onboarding load-only, unverified → `/verify`. Validation green. Deferred to Plan 06: leads under `src/server/*`, role-string authz, ad-hoc action envelopes. Restored Plan 06 as active. |

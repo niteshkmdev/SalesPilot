@@ -1,22 +1,9 @@
-import type { Organization, OrganizationMember, Role } from "@prisma/client";
+import type { Organization } from "@prisma/client";
 import type { DatabaseClient } from "@/server/db/types";
 
 export interface CreateOrganizationInput {
   name: string;
   slug: string;
-}
-
-export interface CreateRoleInput {
-  organizationId: string;
-  name: string;
-  description?: string;
-}
-
-export interface CreateMemberInput {
-  organizationId: string;
-  userId: string;
-  roleId: string;
-  isOwner: boolean;
 }
 
 export async function findOrganizationBySlug(
@@ -31,33 +18,6 @@ export async function createOrganization(
   input: CreateOrganizationInput,
 ): Promise<Organization> {
   return db.organization.create({ data: input });
-}
-
-export async function createRole(
-  db: DatabaseClient,
-  input: CreateRoleInput,
-): Promise<Role> {
-  return db.role.create({ data: input });
-}
-
-export async function createMember(
-  db: DatabaseClient,
-  input: CreateMemberInput,
-): Promise<OrganizationMember> {
-  return db.organizationMember.create({ data: input });
-}
-
-export async function createRolePermissions(
-  db: DatabaseClient,
-  roleId: string,
-  permissionIds: string[],
-): Promise<void> {
-  await db.rolePermission.createMany({
-    data: permissionIds.map((permissionId) => ({
-      roleId,
-      permissionId,
-    })),
-  });
 }
 
 export async function createDefaultLeadStatuses(

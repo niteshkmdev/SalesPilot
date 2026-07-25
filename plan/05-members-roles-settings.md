@@ -14,9 +14,15 @@ Build personal profile settings, member management, invitations, role assignment
 ## Current Status
 
 - Overall status: `[~]` In progress
-- Current task: Get user approval on the implementation plan.
+- Current task: Finish invite flow and editable organization settings (currently stubbed/disabled in UI).
 - Dependency: `03-app-shell-navigation` (and `04` skipped)
 - Next prompt after completion: `prompt/06-leads-management.md`
+
+## Known Gaps
+
+- Invite Member button is disabled; no invitation create/redeem flow yet.
+- Organization settings form is read-only; updates deferred.
+- Members nav href corrected to `/settings/members` in shell fix pass.
 
 ## Task Checklist
 

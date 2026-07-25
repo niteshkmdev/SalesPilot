@@ -1,20 +1,25 @@
-import type { Prisma, User } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import {
   defaultLeadSources,
   defaultLeadStatuses,
   ownerRoleName,
 } from "@/modules/organizations/constants/defaults";
+import { createMember } from "@/modules/organizations/repository/member.repository";
 import {
   createDefaultBranding,
   createDefaultLeadSources,
   createDefaultLeadStatuses,
-  createMember,
   createOrganization,
-  createRole,
-  createRolePermissions,
   findOrganizationBySlug,
 } from "@/modules/organizations/repository/organization.repository";
-import type { OrganizationContext } from "@/modules/organizations/types/OrganizationContext";
+import {
+  createRole,
+  createRolePermissions,
+} from "@/modules/organizations/repository/role.repository";
+import type {
+  AppUser,
+  OrganizationContext,
+} from "@/modules/organizations/types/OrganizationContext";
 import {
   allPermissionNames,
   permissionDefinitions,
@@ -25,8 +30,14 @@ import {
 } from "@/modules/permissions/repository/permission.repository";
 import { prisma } from "@/server/db/prisma";
 
+/** Minimal user fields required to provision an organization. */
+export type ProvisionableUser = Pick<
+  AppUser,
+  "id" | "name" | "email" | "image" | "emailVerified"
+>;
+
 export async function provisionOrganizationForUser(
-  user: User,
+  user: ProvisionableUser,
 ): Promise<OrganizationContext> {
   return prisma.$transaction(async (tx) => {
     await upsertPermissions(tx, permissionDefinitions);
@@ -60,22 +71,43 @@ export async function provisionOrganizationForUser(
     await createDefaultBranding(tx, organization.id);
 
     return {
-      user,
-      organization,
-      member,
+      user: toAppUser(user),
+      organization: {
+        id: organization.id,
+        name: organization.name,
+        slug: organization.slug,
+      },
+      member: {
+        id: member.id,
+        organizationId: member.organizationId,
+        userId: member.userId,
+        roleId: member.roleId,
+        roleName: ownerRole.name,
+        isOwner: member.isOwner,
+      },
       permissions: allPermissionNames,
     };
   });
 }
 
-function buildOrganizationName(user: User): string {
+function toAppUser(user: ProvisionableUser): AppUser {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    image: user.image,
+    emailVerified: user.emailVerified,
+  };
+}
+
+function buildOrganizationName(user: ProvisionableUser): string {
   const trimmedName = user.name.trim();
   return trimmedName ? `${trimmedName}'s Organization` : "SalesPilot Workspace";
 }
 
 async function buildUniqueOrganizationSlug(
   tx: Prisma.TransactionClient,
-  user: User,
+  user: ProvisionableUser,
 ): Promise<string> {
   const baseSlug = slugify(
     user.name || user.email.split("@")[0] || "workspace",

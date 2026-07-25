@@ -2,6 +2,13 @@ import type { OrganizationMember } from "@prisma/client";
 import type { PermissionName } from "@/modules/permissions/constants/permissions";
 import type { DatabaseClient } from "@/server/db/types";
 
+export interface CreateMemberInput {
+  organizationId: string;
+  userId: string;
+  roleId: string;
+  isOwner: boolean;
+}
+
 export interface MemberWithContext extends OrganizationMember {
   organization: {
     id: string;
@@ -22,6 +29,13 @@ export interface MemberWithContext extends OrganizationMember {
       };
     }>;
   };
+}
+
+export async function createMember(
+  db: DatabaseClient,
+  input: CreateMemberInput,
+): Promise<OrganizationMember> {
+  return db.organizationMember.create({ data: input });
 }
 
 export async function findFirstActiveMemberByUserId(

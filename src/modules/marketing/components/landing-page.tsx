@@ -86,7 +86,11 @@ const faqs = [
   },
 ];
 
-export function LandingPage() {
+interface LandingPageProps {
+  isAuthenticated?: boolean;
+}
+
+export function LandingPage({ isAuthenticated = false }: LandingPageProps) {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 border-b bg-background/90 backdrop-blur">
@@ -112,15 +116,26 @@ export function LandingPage() {
             </Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">
-                Get Started
-                <ArrowRightIcon data-icon="inline-end" />
-              </Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button asChild>
+                <Link href="/dashboard">
+                  Go to Dashboard
+                  <ArrowRightIcon data-icon="inline-end" />
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild variant="ghost">
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/signup">
+                    Get Started
+                    <ArrowRightIcon data-icon="inline-end" />
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -142,15 +157,26 @@ export function LandingPage() {
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg">
-              <Link href="/signup">
-                Get Started
-                <ArrowRightIcon data-icon="inline-end" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/dashboard">Live Demo</Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button asChild size="lg">
+                <Link href="/dashboard">
+                  Open Dashboard
+                  <ArrowRightIcon data-icon="inline-end" />
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild size="lg">
+                  <Link href="/signup">
+                    Get Started
+                    <ArrowRightIcon data-icon="inline-end" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/dashboard">Live Demo</Link>
+                </Button>
+              </>
+            )}
           </div>
           <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
             {["Secure authentication", "Role-based access", "Fast setup"].map(
@@ -243,7 +269,9 @@ export function LandingPage() {
                 <span className="pb-1 text-muted-foreground">per seat</span>
               </div>
               <Button asChild>
-                <Link href="/signup">Start Free</Link>
+                <Link href={isAuthenticated ? "/dashboard" : "/signup"}>
+                  {isAuthenticated ? "Open Dashboard" : "Start Free"}
+                </Link>
               </Button>
             </CardContent>
           </Card>
