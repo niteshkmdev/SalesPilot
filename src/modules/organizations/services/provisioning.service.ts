@@ -41,9 +41,11 @@ export async function provisionOrganizationForUser(
   user: ProvisionableUser,
   options?: { organizationName?: string },
 ): Promise<OrganizationContext> {
-  return prisma.$transaction(async (tx) => {
-    await upsertPermissions(tx, permissionDefinitions);
+  // Seed global permissions OUTSIDE the transaction to avoid timeout limits
+  // on slow MongoDB serverless connections.
+  await upsertPermissions(prisma, permissionDefinitions);
 
+  return prisma.$transaction(async (tx) => {
     const organizationName =
       options?.organizationName?.trim() || buildOrganizationName(user);
 
@@ -71,7 +73,8 @@ export async function provisionOrganizationForUser(
       isOwner: true,
     });
 
-    await ensureDefaultRoles(tx, organization.id);
+    // Skip permission sync here because we already did it outside the transaction
+    await ensureDefaultRoles(tx, organization.id, { skipPermissionSync: true });
 
     await createDefaultLeadStatuses(tx, organization.id, defaultLeadStatuses);
     await createDefaultLeadSources(tx, organization.id, defaultLeadSources);

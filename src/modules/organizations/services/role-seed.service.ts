@@ -28,8 +28,11 @@ import type { DatabaseClient } from "@/server/db/types";
 export async function ensureDefaultRoles(
   db: DatabaseClient,
   organizationId: string,
+  options?: { skipPermissionSync?: boolean },
 ): Promise<Role[]> {
-  await upsertPermissions(db, permissionDefinitions);
+  if (!options?.skipPermissionSync) {
+    await upsertPermissions(db, permissionDefinitions);
+  }
 
   const roles: Role[] = [];
 
