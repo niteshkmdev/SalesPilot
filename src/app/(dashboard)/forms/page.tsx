@@ -9,6 +9,7 @@ import {
 import { FormFilters } from "@/modules/lead-forms/components/form-filters";
 import { FormSearchToggle } from "@/modules/lead-forms/components/form-search-toggle";
 import { FormsTable } from "@/modules/lead-forms/components/forms-table";
+import { RefreshButton } from "@/components/refresh-button";
 
 const statusValues = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
 
@@ -51,6 +52,7 @@ export default async function FormsListPage({
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <FormSearchToggle initialQuery={q ?? ""} />
+          <RefreshButton />
           <FormFilters q={q} status={status} />
           {capabilities.canCreate ? (
             <Button asChild>

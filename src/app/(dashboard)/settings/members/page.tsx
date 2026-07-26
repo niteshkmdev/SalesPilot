@@ -18,6 +18,7 @@ import { MemberFilters } from "@/modules/settings/components/member-filters";
 import { MemberSearchToggle } from "@/modules/settings/components/member-search-toggle";
 import { MembersTable } from "@/modules/settings/components/members-table";
 import { PendingInvitations } from "@/modules/settings/components/pending-invitations";
+import { RefreshButton } from "@/components/refresh-button";
 
 function matchesQuery(haystack: string, query: string): boolean {
   return haystack.toLowerCase().includes(query);
@@ -119,6 +120,7 @@ export default async function MembersPage({
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <MemberSearchToggle initialQuery={filters.q ?? ""} />
+          <RefreshButton />
           <MemberFilters
             roles={allRoles}
             q={filters.q}

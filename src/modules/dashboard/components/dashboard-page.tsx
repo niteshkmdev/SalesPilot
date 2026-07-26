@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/table";
 import type { DashboardOverviewDto } from "@/modules/dashboard";
 import { DateRangePreset } from "@/shared/dates";
+import { RefreshButton } from "@/components/refresh-button";
 
 interface DashboardPageProps {
   data: DashboardOverviewDto;
@@ -66,6 +67,7 @@ export function DashboardPage({ data }: DashboardPageProps) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <RefreshButton />
           <DateRangePicker
             showPresets
             align="end"

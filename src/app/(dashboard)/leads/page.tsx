@@ -17,6 +17,7 @@ import { LeadFilters } from "@/modules/leads/components/lead-filters";
 import { LeadPagination } from "@/modules/leads/components/lead-pagination";
 import { LeadSearchToggle } from "@/modules/leads/components/lead-search-toggle";
 import { LeadTable } from "@/modules/leads/components/lead-table";
+import { RefreshButton } from "@/components/refresh-button";
 
 export default async function LeadsPage({
   searchParams,
@@ -99,6 +100,7 @@ export default async function LeadsPage({
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <LeadSearchToggle initialQuery={filters.q ?? ""} />
+          <RefreshButton />
           <LeadFilters
             statuses={statuses}
             sources={sources}

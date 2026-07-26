@@ -20,11 +20,12 @@ import { authClient } from "@/lib/auth-client";
 
 interface LoginPageProps {
   inviteToken?: string;
+  initialEmail?: string;
 }
 
-export function LoginPage({ inviteToken }: LoginPageProps) {
+export function LoginPage({ inviteToken, initialEmail = "" }: LoginPageProps) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -142,7 +143,7 @@ export function LoginPage({ inviteToken }: LoginPageProps) {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading || isGoogleLoading}
+              disabled={isLoading || isGoogleLoading || !!inviteToken}
             />
           </div>
           <div className="space-y-2">

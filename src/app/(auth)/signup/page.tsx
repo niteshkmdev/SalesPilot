@@ -12,9 +12,9 @@ export default async function SignupRoute({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const resolvedParams = await searchParams;
-  const token =
-    typeof resolvedParams.token === "string" ? resolvedParams.token : undefined;
+  const token = typeof resolvedParams.token === "string" ? resolvedParams.token : undefined;
+  const initialEmail = typeof resolvedParams.email === "string" ? resolvedParams.email : undefined;
   const isInvite = resolvedParams.invite === "true" || !!token;
 
-  return <SignupPage isInvite={isInvite} inviteToken={token} />;
+  return <SignupPage isInvite={isInvite} inviteToken={token} initialEmail={initialEmail} />;
 }

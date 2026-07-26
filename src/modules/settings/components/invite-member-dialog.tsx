@@ -45,32 +45,41 @@ export function InviteMemberDialog({ roles }: InviteMemberDialogProps) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [roleId, setRoleId] = useState(() => defaultInviteRoleId(roles));
-  const [pending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
+  const [, startTransition] = useTransition();
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
     if (next) {
       setRoleId(defaultInviteRoleId(roles));
+      setIsLoading(false);
     }
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    setIsLoading(true);
+    
     startTransition(async () => {
-      const result = await inviteMemberAction({ email, roleId });
-      if ("error" in result && result.error) {
-        toast.error(result.error);
-        return;
+      try {
+        const result = await inviteMemberAction({ email, roleId });
+        if ("error" in result && result.error) {
+          toast.error(result.error);
+          return;
+        }
+        if ("emailSent" in result && result.emailSent === false) {
+          toast.success("Invitation created (email could not be sent)");
+        } else {
+          toast.success("Invitation sent");
+        }
+        setEmail("");
+        setRoleId(defaultInviteRoleId(roles));
+        setOpen(false);
+      } catch (_err) {
+        toast.error("Failed to invite member");
+      } finally {
+        setIsLoading(false);
       }
-      if ("emailSent" in result && result.emailSent === false) {
-        toast.success("Invitation created (email could not be sent)");
-      } else {
-        toast.success("Invitation sent");
-      }
-      setEmail("");
-      setRoleId(defaultInviteRoleId(roles));
-      setOpen(false);
-      router.refresh();
     });
   };
 
@@ -123,8 +132,8 @@ export function InviteMemberDialog({ roles }: InviteMemberDialogProps) {
             </Select>
           </div>
           <SheetFooter className="mt-auto px-0">
-            <Button type="submit" disabled={pending || !roleId}>
-              {pending ? "Sending…" : "Send invitation"}
+            <Button type="submit" disabled={isLoading || !roleId}>
+              {isLoading ? "Sending…" : "Send invitation"}
             </Button>
           </SheetFooter>
         </form>

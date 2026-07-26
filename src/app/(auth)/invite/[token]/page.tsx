@@ -45,8 +45,8 @@ export default async function InvitePage({
     session?.user?.email?.trim().toLowerCase() ===
     invitation.email.trim().toLowerCase();
 
-  const signupHref = `/signup?token=${encodeURIComponent(token)}`;
-  const loginHref = `/login?token=${encodeURIComponent(token)}`;
+  const signupHref = `/signup?token=${encodeURIComponent(token)}&email=${encodeURIComponent(invitation.email)}`;
+  const loginHref = `/login?token=${encodeURIComponent(token)}&email=${encodeURIComponent(invitation.email)}`;
   const isInactive =
     invitation.isAccepted || invitation.isExpired || invitation.isRevoked;
 

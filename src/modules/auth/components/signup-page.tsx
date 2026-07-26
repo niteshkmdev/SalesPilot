@@ -184,6 +184,7 @@ export function SignupPage({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isInvite}
               />
             </div>
             <Button className="w-full" type="submit">
@@ -195,8 +196,8 @@ export function SignupPage({
         <CardContent className="space-y-4">
           <form onSubmit={handleEmailSignup} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} disabled />
+              <Label htmlFor="email-step2">Email</Label>
+              <Input id="email-step2" type="email" value={email} disabled />
             </div>
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>

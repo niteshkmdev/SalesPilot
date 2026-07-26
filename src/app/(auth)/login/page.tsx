@@ -13,6 +13,7 @@ export default async function LoginRoute({
 }) {
   const resolved = await searchParams;
   const token = typeof resolved.token === "string" ? resolved.token : undefined;
+  const initialEmail = typeof resolved.email === "string" ? resolved.email : undefined;
 
-  return <LoginPage inviteToken={token} />;
+  return <LoginPage inviteToken={token} initialEmail={initialEmail} />;
 }
