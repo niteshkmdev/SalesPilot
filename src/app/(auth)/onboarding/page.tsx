@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { OnboardingPage } from "@/modules/auth/components/onboarding-page";
+import { OnboardingState } from "@/modules/auth/constants/onboarding-state";
 import { authService } from "@/modules/auth/services/auth.service";
-import { findFirstActiveMemberByUserId } from "@/modules/organizations/repository/member.repository";
-import type { ActiveUser } from "@/server/auth/auth";
 import { prisma } from "@/server/db/prisma";
 import { ApiErrorCode, AppError } from "@/shared/api/errors";
 
@@ -13,11 +12,15 @@ export const metadata: Metadata = {
 };
 
 /**
- * Onboarding: rename existing org, or create a workspace when the user
- * has no membership (failed signup provision, or removed from their only org).
+ * Onboarding route — exclusively for users with onboardingState === "PENDING".
+ *
+ * Guards:
+ *  - Unauthenticated → /login
+ *  - Unverified email → /verify
+ *  - Already COMPLETED → /auth/callback (resolver will send them to the right place)
  */
 export default async function OnboardingRoute() {
-  let user: ActiveUser;
+  let user: Awaited<ReturnType<typeof authService.requireUser>>;
 
   try {
     user = await authService.requireUser();
@@ -33,10 +36,15 @@ export default async function OnboardingRoute() {
     throw error;
   }
 
-  const member = await findFirstActiveMemberByUserId(prisma, user.id);
+  // Fetch the onboarding state directly — it is not part of the session payload.
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { onboardingState: true },
+  });
 
-  if (!member) {
-    return <OnboardingPage missingOrganization />;
+  // If onboarding is already complete, the resolver will pick the right destination.
+  if (dbUser?.onboardingState === OnboardingState.COMPLETED) {
+    redirect("/auth/callback");
   }
 
   return <OnboardingPage />;

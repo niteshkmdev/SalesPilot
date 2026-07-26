@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { provisionOrganizationForUser } from "@/modules/organizations/services/provisioning.service";
 import { prisma } from "@/server/db/prisma";
 import { sendEmail } from "@/server/email/mailer";
 import { env } from "@/server/env";
@@ -37,24 +36,21 @@ export const auth = betterAuth({
       create: {
         after: async (user) => {
           try {
+            // Invited users: redeem their pending invitation, which provisions
+            // the org membership and sets onboardingState = "COMPLETED".
             const { redeemPendingInvitationForNewUser } = await import(
               "@/modules/organizations/services/invitation.service"
             );
-            const redeemed = await redeemPendingInvitationForNewUser({
+            await redeemPendingInvitationForNewUser({
               id: user.id,
               email: user.email,
             });
-            if (redeemed) return;
-
-            await provisionOrganizationForUser({
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              image: user.image ?? null,
-              emailVerified: Boolean(user.emailVerified),
-            });
+            // Non-invited users go through the explicit onboarding pipeline:
+            //   - Email signup : org created by completeEmailSignupAction()
+            //   - Google signup: org created by completeOnboardingAction()
+            // No implicit auto-provisioning here.
           } catch (error) {
-            console.error("Failed to provision or redeem invitation:", error);
+            console.error("Failed to redeem invitation on user creation:", error);
           }
         },
       },
@@ -179,11 +175,22 @@ export const auth = betterAuth({
      * Better Auth calls this to deliver the verification link.
      */
     sendVerificationEmail: async ({ user, url }) => {
+      // Rewrite the callbackURL so clicking the link lands on /verify/confirmed
+      // instead of /dashboard. The confirmed page shows a success screen and
+      // provides a CTA that runs the unified post-auth resolver.
+      let verificationUrl = url;
+      try {
+        const parsed = new URL(url);
+        parsed.searchParams.set("callbackURL", "/verify/confirmed");
+        verificationUrl = parsed.toString();
+      } catch {
+        // If URL parsing fails, fall back to the original URL.
+      }
       await sendEmail({
         to: user.email,
         subject: "Verify your SalesPilot email address",
-        html: buildVerificationEmailHtml({ name: user.name, url }),
-        text: `Verify your email: ${url}`,
+        html: buildVerificationEmailHtml({ name: user.name, url: verificationUrl }),
+        text: `Verify your email: ${verificationUrl}`,
       });
     },
   },

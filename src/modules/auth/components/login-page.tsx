@@ -29,9 +29,10 @@ export function LoginPage({ inviteToken }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
+  // Invite flows bypass the post-auth resolver and go straight to the invite page.
   const postAuthPath = inviteToken
     ? `/invite/${encodeURIComponent(inviteToken)}`
-    : "/dashboard";
+    : "/auth/callback";
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,9 +45,18 @@ export function LoginPage({ inviteToken }: LoginPageProps) {
       });
 
       if (error) {
+        // If the email is not verified, guide the user into the verification flow
+        // instead of showing a generic error toast.
+        if (
+          error.status === 403 ||
+          (error.code && error.code === "EMAIL_NOT_VERIFIED")
+        ) {
+          router.push(`/verify?email=${encodeURIComponent(email)}`);
+          return;
+        }
         toast.error(error.message || "Failed to sign in");
       } else {
-        toast.success("Successfully signed in");
+        // Run the unified post-auth resolver server-side.
         router.push(postAuthPath);
         router.refresh();
       }
@@ -62,6 +72,8 @@ export function LoginPage({ inviteToken }: LoginPageProps) {
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
+        // Both Login and Signup use /auth/callback — the resolver decides
+        // the destination based on onboardingState, not the entry page.
         callbackURL: postAuthPath,
       });
 

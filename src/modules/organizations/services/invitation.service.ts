@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
+import { OnboardingState } from "@/modules/auth/constants/onboarding-state";
 import { requireAppContext } from "@/modules/auth/services/app-context.service";
 import {
   assignableRoleNames,
@@ -266,7 +267,9 @@ export async function redeemPendingInvitationForNewUser(user: {
     await markInvitationAccepted(tx, invitation.id);
     await tx.user.update({
       where: { id: user.id },
-      data: { emailVerified: true },
+      // Invited users skip the onboarding wizard — mark as COMPLETED.
+      // Email is considered verified through the invitation link.
+      data: { emailVerified: true, onboardingState: OnboardingState.COMPLETED },
     });
   });
 
@@ -336,7 +339,9 @@ export async function acceptInvitationForCurrentUser(
     await markInvitationAccepted(tx, invitation.id);
     await tx.user.update({
       where: { id: user.id },
-      data: { emailVerified: true },
+      // Invited users skip the onboarding wizard — mark as COMPLETED.
+      // Email is considered verified through the invitation link.
+      data: { emailVerified: true, onboardingState: OnboardingState.COMPLETED },
     });
   });
 }

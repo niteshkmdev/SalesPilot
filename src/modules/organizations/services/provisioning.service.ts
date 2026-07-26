@@ -95,6 +95,9 @@ export async function provisionOrganizationForUser(
       },
       permissions: allPermissionNames,
     };
+  }, {
+    maxWait: 10000, // 10 seconds
+    timeout: 20000, // 20 seconds
   });
 }
 

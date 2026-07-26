@@ -11,16 +11,18 @@ export async function upsertPermissions(
   db: DatabaseClient,
   permissions: PermissionSeedInput[],
 ): Promise<void> {
-  for (const permission of permissions) {
-    await db.permission.upsert({
-      where: { name: permission.name },
-      create: permission,
-      update: {
-        description: permission.description,
-        group: permission.group,
-      },
-    });
-  }
+  await Promise.all(
+    permissions.map((permission) =>
+      db.permission.upsert({
+        where: { name: permission.name },
+        create: permission,
+        update: {
+          description: permission.description,
+          group: permission.group,
+        },
+      })
+    )
+  );
 }
 
 export async function findPermissionIdsByNames(

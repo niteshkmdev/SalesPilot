@@ -16,18 +16,24 @@ datasource db {
 // ---------------------------------------------------------------------------
 
 model User {
-  id            String    @id @default(cuid()) @map("_id")
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  phone         String?
-  gender        String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String   @id @default(cuid()) @map("_id")
+  name              String
+  email             String   @unique
+  emailVerified     Boolean  @default(false)
+  image             String?
+  phone             String?
+  gender            String?
+  /// Tracks whether the user has completed the onboarding wizard.
+  /// "PENDING"   — never finished onboarding (new user OR abandoned mid-flow).
+  /// "COMPLETED" — finished onboarding at least once.
+  /// Used exclusively server-side by resolvePostAuthDestination().
+  /// Never exposed to the client session payload.
+  onboardingState   String   @default("PENDING")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  sessions Session[]
-  accounts Account[]
+  sessions            Session[]
+  accounts            Account[]
   organizationMembers OrganizationMember[]
 
   @@map("user")

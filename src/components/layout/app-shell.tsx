@@ -21,7 +21,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
         redirect("/verify");
       }
       if (error.code === ApiErrorCode.ORGANIZATION_REQUIRED) {
-        redirect("/onboarding");
+        // The user has completed onboarding (COMPLETED state) but has no active
+        // org membership — send them to the recovery flow, not onboarding.
+        redirect("/no-organization");
       }
     }
     throw error;

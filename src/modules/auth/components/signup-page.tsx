@@ -34,10 +34,9 @@ export function SignupPage({
   // Multi-step state
   const [step, setStep] = useState<1 | 2>(1);
 
-  // Form states
+  // Form state
   const [email, setEmail] = useState(initialEmail);
   const [name, setName] = useState("");
-  const [organization, setOrganization] = useState("");
   const [password, setPassword] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
@@ -69,14 +68,22 @@ export function SignupPage({
 
       if (error) {
         toast.error(error.message || "Failed to create account");
-      } else if (isInvite) {
+        return;
+      }
+
+      if (isInvite) {
+        // Invited users: org membership is handled by the invitation hook.
         toast.success("Account created — joining your organization");
         router.push(inviteCallback);
         router.refresh();
-      } else {
-        toast.success("Account created successfully!");
-        router.push(`/verify?email=${encodeURIComponent(email)}`);
+        return;
       }
+
+      // Non-invite signup: user must verify their email. Better Auth prevents
+      // session creation until verification is complete. After verifying, they
+      // will be sent to /onboarding to create their organization.
+      toast.success("Account created! Please verify your email to continue.");
+      router.push(`/verify?email=${encodeURIComponent(email)}`);
     } catch (_err) {
       toast.error("An unexpected error occurred");
     } finally {
@@ -89,7 +96,9 @@ export function SignupPage({
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: isInvite ? inviteCallback : "/onboarding",
+        // Both Login and Signup use /auth/callback — the resolver decides
+        // the destination based on onboardingState, not the entry page.
+        callbackURL: isInvite ? inviteCallback : "/auth/callback",
       });
 
       if (error) {
@@ -197,18 +206,6 @@ export function SignupPage({
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            {!isInvite && (
-              <div className="space-y-2">
-                <Label htmlFor="organization">Organization Name</Label>
-                <Input
-                  id="organization"
-                  placeholder="Acme Inc."
-                  required
-                  value={organization}
-                  onChange={(e) => setOrganization(e.target.value)}
-                />
-              </div>
-            )}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input

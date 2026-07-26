@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { z } from "zod";
-import { findFirstActiveMemberByUserId } from "@/modules/organizations/repository/member.repository";
+import { OnboardingState } from "@/modules/auth/constants/onboarding-state";
 import { provisionOrganizationForUser } from "@/modules/organizations/services/provisioning.service";
 import { auth } from "@/server/auth/auth";
 import { prisma } from "@/server/db/prisma";
@@ -15,7 +15,19 @@ const OrganizationNameSchema = z.object({
     .max(100),
 });
 
-export async function renameOrganizationAction(name: string) {
+/**
+ * Completes the onboarding wizard for Google OAuth users (and any other user
+ * who reaches /onboarding with onboardingState === "PENDING").
+ *
+ * Creates the organization with the chosen name, provisions the owner
+ * membership, seeds default roles and lead statuses, and marks the user's
+ * onboardingState as COMPLETED.
+ *
+ * Idempotent: if onboarding is already COMPLETED, returns success.
+ */
+export async function completeOnboardingAction(
+  name: string,
+): Promise<{ success: true } | { error: string }> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -31,32 +43,61 @@ export async function renameOrganizationAction(name: string) {
     };
   }
 
-  const member = await prisma.organizationMember.findFirst({
-    where: { userId: session.user.id },
-    include: { organization: true },
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      emailVerified: true,
+      onboardingState: true,
+    },
   });
 
-  if (!member) {
-    return { error: "No organization found for your account." };
+  if (!dbUser) {
+    return { error: "User account not found." };
   }
 
-  if (!member.isOwner) {
-    return { error: "Only the organization owner can rename the workspace." };
+  // Idempotent: already completed (e.g. if the user refreshed mid-submit).
+  if (dbUser.onboardingState === OnboardingState.COMPLETED) {
+    return { success: true };
   }
 
-  await prisma.organization.update({
-    where: { id: member.organizationId },
-    data: { name: parsed.data.name },
-  });
+  try {
+    await provisionOrganizationForUser(
+      {
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        image: dbUser.image,
+        emailVerified: dbUser.emailVerified,
+      },
+      { organizationName: parsed.data.name },
+    );
 
-  return { success: true as const };
+    await prisma.user.update({
+      where: { id: dbUser.id },
+      data: { onboardingState: OnboardingState.COMPLETED },
+    });
+  } catch (_err) {
+    console.error("completeOnboardingAction failed:", _err);
+    return { error: "Could not create your organization. Please try again." };
+  }
+
+  return { success: true };
 }
 
 /**
- * Creates a workspace for a verified user who has no organization membership.
- * Used when signup provision failed, or after a user is removed from their only org.
+ * Creates a new organization for a COMPLETED user who currently has no
+ * org membership (the /no-organization recovery flow).
+ *
+ * This does NOT change onboardingState — the user has already completed
+ * onboarding; they simply lost their org membership.
  */
-export async function createWorkspaceAction(name: string) {
+export async function createWorkspaceAction(
+  name: string,
+): Promise<{ success: true } | { error: string }> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -76,16 +117,27 @@ export async function createWorkspaceAction(name: string) {
     };
   }
 
-  const existing = await findFirstActiveMemberByUserId(prisma, session.user.id);
-  if (existing) {
-    return { error: "You already belong to a workspace." };
-  }
-
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      emailVerified: true,
+    },
   });
+
   if (!dbUser) {
     return { error: "User account not found." };
+  }
+
+  // Guard: user must not already belong to an org (race condition protection).
+  const existingMember = await prisma.organizationMember.findFirst({
+    where: { userId: session.user.id },
+  });
+  if (existingMember) {
+    return { error: "You already belong to a workspace." };
   }
 
   try {
@@ -103,5 +155,5 @@ export async function createWorkspaceAction(name: string) {
     return { error: "Could not create workspace. Please try again." };
   }
 
-  return { success: true as const };
+  return { success: true };
 }

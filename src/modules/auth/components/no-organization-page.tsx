@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { completeOnboardingAction } from "@/app/(auth)/onboarding/actions";
+import { createWorkspaceAction } from "@/app/(auth)/onboarding/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,34 +18,39 @@ import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 
 /**
- * Onboarding wizard — shown exclusively to users with onboardingState === "PENDING".
+ * Recovery page for existing users (onboardingState === "COMPLETED") who
+ * currently have zero active organization memberships.
  *
  * This covers:
- *   - Brand-new Google OAuth users (never entered an org name).
- *   - Users who started signup and abandoned the flow.
+ *   - Users who were removed from their organization.
+ *   - Users whose organization was deleted.
+ *   - Any other scenario where a previously-onboarded user has no org.
  *
- * It is NOT used for users who completed onboarding but lost their org
- * (those go to /no-organization instead).
+ * This is NOT the onboarding wizard. Onboarding is already complete.
+ * This page only recovers the missing organization state.
+ *
+ * Note: joining an existing organization is handled via invitation links,
+ * not through this page.
  */
-export function OnboardingPage() {
+export function NoOrganizationPage() {
   const router = useRouter();
   const [organization, setOrganization] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const handleCompleteOnboarding = async (e: React.FormEvent) => {
+  const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const result = await completeOnboardingAction(organization);
+      const result = await createWorkspaceAction(organization);
 
       if ("error" in result) {
         toast.error(result.error);
         return;
       }
 
-      toast.success("Organization created — welcome to SalesPilot!");
+      toast.success("Workspace created");
       router.push("/dashboard");
       router.refresh();
     } catch (_err) {
@@ -70,28 +75,31 @@ export function OnboardingPage() {
   return (
     <Card>
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold">
-          Welcome to SalesPilot!
-        </CardTitle>
+        <CardTitle className="text-2xl font-bold">No workspace found</CardTitle>
         <CardDescription>
-          Name your organization to finish setting up your workspace.
+          You are not part of any organization. Create a new workspace to
+          continue, or log out if you are expecting an invitation.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <form onSubmit={handleCompleteOnboarding} className="space-y-4">
+        <form onSubmit={handleCreateWorkspace} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="organization">Organization Name</Label>
+            <Label htmlFor="organization">Workspace name</Label>
             <Input
               id="organization"
               placeholder="Acme Inc."
               required
               value={organization}
               onChange={(e) => setOrganization(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isSigningOut}
             />
           </div>
-          <Button className="w-full" type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : "Continue to Dashboard"}
+          <Button
+            className="w-full"
+            type="submit"
+            disabled={isLoading || isSigningOut}
+          >
+            {isLoading ? "Creating..." : "Create workspace"}
           </Button>
         </form>
         <Button
