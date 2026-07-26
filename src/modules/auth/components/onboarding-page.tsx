@@ -46,8 +46,7 @@ export function OnboardingPage() {
       }
 
       toast.success("Organization created — welcome to SalesPilot!");
-      router.push("/dashboard");
-      router.refresh();
+      window.location.href = "/dashboard";
     } catch (_err) {
       toast.error("An unexpected error occurred");
     } finally {
@@ -59,8 +58,7 @@ export function OnboardingPage() {
     setIsSigningOut(true);
     try {
       await authClient.signOut();
-      router.push("/login");
-      router.refresh();
+      window.location.href = "/login";
     } catch (_err) {
       toast.error("Error signing out");
       setIsSigningOut(false);

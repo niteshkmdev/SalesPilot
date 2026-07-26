@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { setTemporaryPassword } from "@/modules/auth/lib/verification-credentials";
 
 interface SignupPageProps {
   isInvite?: boolean;
@@ -82,6 +83,7 @@ export function SignupPage({
       // Non-invite signup: user must verify their email. Better Auth prevents
       // session creation until verification is complete. After verifying, they
       // will be sent to /onboarding to create their organization.
+      setTemporaryPassword(password);
       toast.success("Account created! Please verify your email to continue.");
       router.push(`/verify?email=${encodeURIComponent(email)}`);
     } catch (_err) {

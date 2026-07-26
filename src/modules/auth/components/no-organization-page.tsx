@@ -51,8 +51,7 @@ export function NoOrganizationPage() {
       }
 
       toast.success("Workspace created");
-      router.push("/dashboard");
-      router.refresh();
+      window.location.href = "/dashboard";
     } catch (_err) {
       toast.error("An unexpected error occurred");
     } finally {
@@ -64,8 +63,7 @@ export function NoOrganizationPage() {
     setIsSigningOut(true);
     try {
       await authClient.signOut();
-      router.push("/login");
-      router.refresh();
+      window.location.href = "/login";
     } catch (_err) {
       toast.error("Error signing out");
       setIsSigningOut(false);

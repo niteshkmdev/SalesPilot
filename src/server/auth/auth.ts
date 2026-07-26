@@ -166,8 +166,9 @@ export const auth = betterAuth({
 
     /**
      * Automatically sign the user in after they verify their email.
+     * Set to false to force users to authenticate with their password even after clicking the link.
      */
-    autoSignInAfterVerification: true,
+    autoSignInAfterVerification: false,
 
     expiresIn: 60 * 60 * 24, // 24 hours
 

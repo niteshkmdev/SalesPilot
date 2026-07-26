@@ -21,8 +21,8 @@ export const metadata: Metadata = {
  * verifies the token and redirects to this page (via the callbackURL we
  * injected in sendVerificationEmail).
  *
- * The "Continue" CTA sends the user through /auth/callback which runs the
- * unified post-auth resolver to determine the correct destination.
+ * The "Continue" CTA sends the user to /login because
+ * autoSignInAfterVerification is disabled for security.
  */
 export default function VerifyConfirmedPage() {
   return (
@@ -52,10 +52,10 @@ export default function VerifyConfirmedPage() {
 
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            You can now access all features of SalesPilot.
+            You can now log in to access all features of SalesPilot.
           </p>
           <Button className="w-full" asChild>
-            <Link href="/auth/callback">Continue to SalesPilot →</Link>
+            <Link href="/login">Continue to Login →</Link>
           </Button>
         </CardContent>
       </Card>

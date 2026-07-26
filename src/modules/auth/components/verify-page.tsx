@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
+import { getTemporaryPassword, setTemporaryPassword } from "@/modules/auth/lib/verification-credentials";
 
 // ---------------------------------------------------------------------------
 // Oscillating wave polling schedule (milliseconds).
@@ -59,16 +60,43 @@ function VerifyEmailContent() {
     if (cancelledRef.current) return;
 
     try {
-      const session = await authClient.getSession();
+      const currentEmail = new URLSearchParams(window.location.search).get("email");
+      if (!currentEmail) return;
 
-      if (session?.data?.user?.emailVerified) {
-        // Verification detected — stop polling and redirect through the
-        // unified post-auth resolver.
+      const res = await fetch(`/api/auth/check-verification?email=${encodeURIComponent(currentEmail)}`);
+      const data = await res.json();
+
+      if (data.verified) {
+        // Verification detected on another device!
         setPollStatus("verified");
+        
+        // Attempt auto-login if we have the password in memory
+        const tempPassword = getTemporaryPassword();
+        if (tempPassword) {
+          try {
+            const signInRes = await authClient.signIn.email({
+              email: currentEmail,
+              password: tempPassword,
+            });
+            
+            if (!signInRes.error) {
+              setTemporaryPassword(""); // clear it securely
+              setTimeout(() => {
+                setPollStatus("redirecting");
+                window.location.href = "/auth/callback";
+              }, 800);
+              return;
+            }
+          } catch (e) {
+            // Silently fallback to manual login
+          }
+        }
+
+        // Fallback to manual login
         setTimeout(() => {
           setPollStatus("redirecting");
-          router.push("/auth/callback");
-        }, 800); // brief pause so the UI can show the verified state
+          window.location.href = "/login";
+        }, 800);
         return;
       }
     } catch {
@@ -80,7 +108,7 @@ function VerifyEmailContent() {
       attemptRef.current += 1;
       setTimeout(poll, delay);
     }
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     cancelledRef.current = false;
